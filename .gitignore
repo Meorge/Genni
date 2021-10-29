@@ -1,0 +1,8 @@
+aitextgen
+.venv
+trained_model
+*.txt
+*.json
+.DS_Store
+
+test.py
