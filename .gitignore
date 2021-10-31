@@ -6,3 +6,5 @@ trained_model
 .DS_Store
 
 test.py
+__pycache__
+gpt.py
