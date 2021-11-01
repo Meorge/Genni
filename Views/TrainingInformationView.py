@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import QFrame, QGridLayout, QSizePolicy, QWidget
 from datetime import timedelta
 
 from .LabeledValueView import LabeledValueView
-from ATGTrainer import ATGTrainer
 
 COLOR_PURPLE = QColor(180, 170, 255)
 COLOR_BLUE = QColor(170, 240, 255)
@@ -46,7 +45,7 @@ class TrainingInformationView(QWidget):
         self.setLayout(self.ly)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
 
-    def setTrainer(self, trainer: ATGTrainer): self.trainer = trainer
+    def setTrainer(self, trainer): self.trainer = trainer
 
     def addRow(self, widget1: QWidget, widget2: QWidget):
         self.ly.addWidget(widget1, self.currentGridRow, 0, Qt.AlignmentFlag.AlignTop)

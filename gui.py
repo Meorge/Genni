@@ -10,16 +10,18 @@ class MyWindow(QMainWindow):
         QMainWindow.__init__(self)
 
         self.trainingView = TrainingView(self)
+        self.trainingView.trainingStarted.connect(self.doTraining)
         self.setCentralWidget(self.trainingView)
 
     def doTraining(self):
+        pass
         self.trainThread = ATGTrainer(self)
-        self.trainingInProgressView.trainingInfo.setTrainer(self.trainThread)
+        self.trainingView.trainingInProgressView.trainingInfo.setTrainer(self.trainThread)
 
-        self.trainThread.trainingStarted.connect(self.trainingInProgressView.onTrainingStarted)
-        self.trainThread.trainingEnded.connect(self.trainingInProgressView.onTrainingEnded)
-        self.trainThread.batchEnded.connect(self.trainingInProgressView.onBatchEnded)
-        self.trainThread.timePassed.connect(self.trainingInProgressView.trainingInfo.onTimePassed)
+        self.trainThread.trainingStarted.connect(self.trainingView.trainingInProgressView.onTrainingStarted)
+        self.trainThread.trainingEnded.connect(self.trainingView.trainingInProgressView.onTrainingEnded)
+        self.trainThread.batchEnded.connect(self.trainingView.trainingInProgressView.onBatchEnded)
+        self.trainThread.timePassed.connect(self.trainingView.trainingInProgressView.trainingInfo.onTimePassed)
         self.trainThread.start()
 
 

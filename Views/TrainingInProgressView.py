@@ -36,10 +36,10 @@ class TrainingInProgressView(QSplitter):
     
 
     def onTrainingStarted(self):
-        self.gobutton.setEnabled(False)
+        pass
 
     def onTrainingEnded(self):
-        self.gobutton.setEnabled(True)
+        pass
 
     def onBatchEnded(self, steps, total, loss, avg_loss):
         self.trainingInfo.onBatchEnded(steps, total, avg_loss)

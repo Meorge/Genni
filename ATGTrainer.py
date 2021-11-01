@@ -1,8 +1,3 @@
-from aitextgen.aitextgen.TokenDataset import TokenDataset
-from aitextgen.aitextgen.tokenizers import train_tokenizer
-from aitextgen.aitextgen.utils import GPT2ConfigCPU
-from aitextgen.aitextgen import aitextgen
-
 from PyQt5.QtCore import QThread, QTimer, pyqtSignal
 from datetime import datetime, timedelta
 
@@ -46,6 +41,7 @@ class ATGTrainer(QThread):
     def setDataset(self, filename: str): self.__dataset = filename
 
     def onTrainingStarted_main(self):
+        print('training started was emitted')
         self.startTime = datetime.now()
         self.timePassedTimer.start()
 
@@ -58,12 +54,18 @@ class ATGTrainer(QThread):
         self.timePassed.emit(elapsed, 0)
 
     def run(self):
+        from aitextgen.aitextgen.TokenDataset import TokenDataset
+        from aitextgen.aitextgen.tokenizers import train_tokenizer
+        from aitextgen.aitextgen.utils import GPT2ConfigCPU
+        from aitextgen.aitextgen import aitextgen
+
         file_name = self.dataset()
-        # train_tokenizer(file_name)
+        train_tokenizer(file_name)
         tokenizer_file = "aitextgen.tokenizer.json"
         config = GPT2ConfigCPU()
 
-        self.ai = aitextgen(tokenizer_file=tokenizer_file, config=config)
+        # self.ai = aitextgen(tokenizer_file=tokenizer_file, config=config)
+        self.ai = aitextgen(config=config)
         self.data = TokenDataset(file_name, tokenizer_file=tokenizer_file, block_size=64)
 
         callbacks = {
@@ -74,6 +76,8 @@ class ATGTrainer(QThread):
             'on_model_saved': self.onModelSaved
         }
 
+        print('About to call self.ai.train')
+
         self.ai.train(self.data,
             learning_rate=self.learningRate(),
             batch_size=1,
@@ -83,7 +87,6 @@ class ATGTrainer(QThread):
             print_generated=False, print_saved=False, callbacks=callbacks)
 
     def onTrainingStarted(self):
-        # print("Training has started!")
         self.trainingStarted.emit()
 
     def onTrainingEnded(self):

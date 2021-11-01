@@ -1,5 +1,6 @@
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QFont
-from PyQt5.QtWidgets import QLabel, QSizePolicy, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QHBoxLayout, QLabel, QSizePolicy, QVBoxLayout, QWidget
 
 class LabeledValueView(QWidget):
     def __init__(self, title: str, value: str, valueColor: QColor = None, parent=None):
@@ -9,7 +10,9 @@ class LabeledValueView(QWidget):
 
         self.valueLabel = QLabel(value)
         self.valueLabelFont = QFont()
+        self.valueLabelFont.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 0)
         self.valueLabelFont.setPointSizeF(self.valueLabelFont.pointSizeF() * 2.0)
+        self.valueLabelFont.setStyleHint(QFont.StyleHint.Monospace)
         self.valueLabel.setFont(self.valueLabelFont)
 
         self.ly = QVBoxLayout(self)
