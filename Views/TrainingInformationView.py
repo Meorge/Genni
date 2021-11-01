@@ -1,6 +1,6 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QFrame, QGridLayout, QSizePolicy, QWidget
+from PyQt5.QtWidgets import QFrame, QGridLayout, QPlainTextEdit, QSizePolicy, QSplitter, QTreeView, QTreeWidget, QTreeWidgetItem, QWidget
 from datetime import timedelta
 
 from .LabeledValueView import LabeledValueView
@@ -30,6 +30,16 @@ class TrainingInformationView(QWidget):
         self.stepsToGenTextLabel = LabeledValueView("Next Samples", "---", COLOR_BLUE)
         self.stepsToSaveModelLabel = LabeledValueView("Next Save", "---", COLOR_BLUE)
 
+        self.outputTreeView = QTreeWidget(self, currentItemChanged=self.onSelectedOutputChanged)
+        self.outputTreeView.setHeaderHidden(True)
+
+        self.outputTextView = QPlainTextEdit(self)
+        self.outputTextView.setReadOnly(True)
+
+        self.outputSplitter = QSplitter(Qt.Orientation.Vertical, self)
+        self.outputSplitter.addWidget(self.outputTreeView)
+        self.outputSplitter.addWidget(self.outputTextView)
+
         self.ly = QGridLayout(self)
 
         self.currentGridRow = 0
@@ -40,6 +50,8 @@ class TrainingInformationView(QWidget):
         self.addRow(self.timeElapsedLabel, self.timeRemainingLabel)
         self.addDivider()
         self.addRow(self.avgLossLabel, QWidget())
+        self.addDivider()
+        self.ly.addWidget(self.outputSplitter, self.currentGridRow, 0, 1, 2)
         self.ly.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeading)
 
         self.setLayout(self.ly)
@@ -69,6 +81,20 @@ class TrainingInformationView(QWidget):
         self.stepsToSaveModelLabel.setValue(str(stepsToSave))
 
         self.avgLossLabel.setValue(f'{avg_loss:.2f}')
+
+    def onSamplesGenerated(self, step, texts):
+        item = QTreeWidgetItem([f'{step}'])
+        for i in texts:
+            iWithoutLinebreaks = i.replace("\n", " ")
+            subItem = QTreeWidgetItem(item, [iWithoutLinebreaks])
+            subItem.setData(0, Qt.ItemDataRole.UserRole, i)
+
+        self.outputTreeView.addTopLevelItem(item)
+
+    def onSelectedOutputChanged(self, current: QTreeWidgetItem, previous: QTreeWidgetItem):
+        data = current.data(0, Qt.ItemDataRole.UserRole)
+        if data is not None:
+            self.outputTextView.setPlainText(data)
 
     def onTimePassed(self, passed: timedelta, remaining):
         hours, rem = divmod(passed.seconds, 3600)

@@ -8,11 +8,12 @@ class ATGTrainer(QThread):
     trainingStarted = pyqtSignal()
     trainingEnded = pyqtSignal()
     batchEnded = pyqtSignal(int, int, float, float)
-    sampleTextGenerated = pyqtSignal(list)
+    sampleTextGenerated = pyqtSignal(int, list)
     modelSaved = pyqtSignal(int, int, str)
 
     timePassed = pyqtSignal(timedelta, float)
 
+    __currentStep = 0
     __saveEvery = 500
     __genEvery = 1000
     __totalSteps = 2000
@@ -42,6 +43,8 @@ class ATGTrainer(QThread):
 
     def dataset(self) -> str: return self.__dataset
     def setDataset(self, filename: str): self.__dataset = filename
+
+    def currentStep(self) -> int: return self.__currentStep
 
     def onTrainingStarted_main(self):
         print('training started was emitted')
@@ -81,6 +84,7 @@ class ATGTrainer(QThread):
         self.ai.train(self.data,
             learning_rate=self.learningRate(),
             batch_size=1,
+            n_generate=5,
             num_steps=self.totalSteps(),
             generate_every=self.genEvery(),
             save_every=self.saveEvery(),
@@ -95,11 +99,12 @@ class ATGTrainer(QThread):
 
     def onBatchEnded(self, steps, total, loss, avg_loss):
         # print(f"Step {steps}/{total} - loss {loss} and avg {avg_loss}")
+        self.__currentStep = steps
         self.batchEnded.emit(steps, total, loss, avg_loss)
 
     def onSampleTextGenerated(self, texts):
         # print(f"Sample texts: {texts}")
-        self.sampleTextGenerated.emit(texts)
+        self.sampleTextGenerated.emit(self.currentStep(), texts)
 
     def onModelSaved(self, steps, total, dir):
         # print(f"Step {steps}/{total} - save to {dir}")

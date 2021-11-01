@@ -19,12 +19,12 @@ class TrainingHyperparameterSetupView(QWidget):
         self.sourceDatasetPicker = FilePicker(self)
 
 
-        self.learningRateBox = QLineEdit('0.00001', self)
+        self.learningRateBox = QLineEdit('0.01', self)
         self.learningRateBox.setValidator(self.learningRateValidator)
         self.learningRateBox.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
 
         self.totalStepsSpinner = QSpinBox(self, minimum=0, maximum=999999, value=10000)
-        self.stepsPerGenSpinner = QSpinBox(self, minimum=0, maximum=999999, value=500)
+        self.stepsPerGenSpinner = QSpinBox(self, minimum=0, maximum=999999, value=100)
         self.stepsPerSaveSpinner = QSpinBox(self, minimum=0, maximum=999999, value=1000)
         self.goButton = QPushButton('Start Training', self)
 

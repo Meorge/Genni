@@ -25,6 +25,7 @@ class MyWindow(QMainWindow):
         self.trainThread.trainingStarted.connect(self.trainingView.trainingInProgressView.onTrainingStarted)
         self.trainThread.trainingEnded.connect(self.trainingView.trainingInProgressView.onTrainingEnded)
         self.trainThread.batchEnded.connect(self.trainingView.trainingInProgressView.onBatchEnded)
+        self.trainThread.sampleTextGenerated.connect(self.trainingView.trainingInProgressView.onSamplesGenerated)
         self.trainThread.timePassed.connect(self.trainingView.trainingInProgressView.trainingInfo.onTimePassed)
         self.trainThread.start()
 
