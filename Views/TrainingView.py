@@ -6,7 +6,7 @@ from Views.TrainingInProgressView import TrainingInProgressView
 from Views.SwipingPageView import SwipingPageView
 
 class TrainingView(QWidget):
-    trainingStarted = pyqtSignal()
+    trainingStarted = pyqtSignal(dict)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -45,8 +45,7 @@ class TrainingView(QWidget):
         
     def startTraining(self):
         self.trainingLabel.setText('Training...')
-        self.trainingSourceLabel.setText('Finetuning on the dataset \"NOT A REAL FILE.txt\".')
+        self.trainingSourceLabel.setText(f'''Finetuning on \"{self.hpSetupView.getHyperparameters()['dataset']}\".''')
         self.pageView.slideInIdx(1)
-        print('time to start training')
-        self.trainingStarted.emit()
+        self.trainingStarted.emit(self.hpSetupView.getHyperparameters())
 

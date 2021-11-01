@@ -1,5 +1,8 @@
 from PyQt5.QtCore import QThread, QTimer, pyqtSignal
 from datetime import datetime, timedelta
+from os import environ
+environ["TOKENIZERS_PARALLELISM"] = "false"
+environ["OMP_NUM_THREADS"] = "1"
 
 class ATGTrainer(QThread):
     trainingStarted = pyqtSignal()
@@ -54,25 +57,18 @@ class ATGTrainer(QThread):
         self.timePassed.emit(elapsed, 0)
 
     def run(self):
-        print('time to import aitextgen stuff')
-        from aitextgen.aitextgen.TokenDataset import TokenDataset
-        from aitextgen.aitextgen.tokenizers import train_tokenizer
-        from aitextgen.aitextgen.utils import GPT2ConfigCPU
-        from aitextgen.aitextgen import aitextgen
-        print('aitextgen stuff imported')
+        from aitextgen_dev.aitextgen.TokenDataset import TokenDataset
+        from aitextgen_dev.aitextgen.tokenizers import train_tokenizer
+        from aitextgen_dev.aitextgen.utils import GPT2ConfigCPU
+        from aitextgen_dev.aitextgen import aitextgen
 
-        print('running ATGTrainer')
         file_name = self.dataset()
         train_tokenizer(file_name)
-        print('tokenizer trained')
         tokenizer_file = "aitextgen.tokenizer.json"
         config = GPT2ConfigCPU()
-        print('GPT2 config created')
 
         self.ai = aitextgen(tokenizer_file=tokenizer_file, config=config)
-        print('aitextgen created')
         self.data = TokenDataset(file_name, tokenizer_file=tokenizer_file, block_size=64)
-        print('token dataset created')
 
         callbacks = {
             'on_train_start': self.onTrainingStarted,
@@ -81,8 +77,6 @@ class ATGTrainer(QThread):
             'on_sample_text_generated': self.onSampleTextGenerated,
             'on_model_saved': self.onModelSaved
         }
-
-        print('About to call self.ai.train')
 
         self.ai.train(self.data,
             learning_rate=self.learningRate(),
