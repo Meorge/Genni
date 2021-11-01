@@ -1,6 +1,8 @@
 from PyQt5.QtWidgets import QMainWindow, QApplication
 import sys
 from os import environ
+environ["TOKENIZERS_PARALLELISM"] = "false"
+environ["OMP_NUM_THREADS"] = "1"
 
 from ATGTrainer import ATGTrainer
 from Views.TrainingView import TrainingView
@@ -11,10 +13,11 @@ class MyWindow(QMainWindow):
 
         self.trainingView = TrainingView(self)
         self.trainingView.trainingStarted.connect(self.doTraining)
+        self.trainingView.startTraining()
         self.setCentralWidget(self.trainingView)
 
     def doTraining(self):
-        pass
+        print('training should start now, create ATGTrainer')
         self.trainThread = ATGTrainer(self)
         self.trainingView.trainingInProgressView.trainingInfo.setTrainer(self.trainThread)
 
@@ -26,8 +29,6 @@ class MyWindow(QMainWindow):
 
 
 if __name__ == "__main__":
-    environ["TOKENIZERS_PARALLELISM"] = "false"
-    environ["OMP_NUM_THREADS"] = "1"
     app = QApplication([])
     window = MyWindow()
     window.show()

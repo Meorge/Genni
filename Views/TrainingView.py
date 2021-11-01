@@ -47,5 +47,6 @@ class TrainingView(QWidget):
         self.trainingLabel.setText('Training...')
         self.trainingSourceLabel.setText('Finetuning on the dataset \"NOT A REAL FILE.txt\".')
         self.pageView.slideInIdx(1)
+        print('time to start training')
         self.trainingStarted.emit()
 

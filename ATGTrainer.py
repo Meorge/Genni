@@ -54,19 +54,25 @@ class ATGTrainer(QThread):
         self.timePassed.emit(elapsed, 0)
 
     def run(self):
+        print('time to import aitextgen stuff')
         from aitextgen.aitextgen.TokenDataset import TokenDataset
         from aitextgen.aitextgen.tokenizers import train_tokenizer
         from aitextgen.aitextgen.utils import GPT2ConfigCPU
         from aitextgen.aitextgen import aitextgen
+        print('aitextgen stuff imported')
 
+        print('running ATGTrainer')
         file_name = self.dataset()
         train_tokenizer(file_name)
+        print('tokenizer trained')
         tokenizer_file = "aitextgen.tokenizer.json"
         config = GPT2ConfigCPU()
+        print('GPT2 config created')
 
-        # self.ai = aitextgen(tokenizer_file=tokenizer_file, config=config)
-        self.ai = aitextgen(config=config)
+        self.ai = aitextgen(tokenizer_file=tokenizer_file, config=config)
+        print('aitextgen created')
         self.data = TokenDataset(file_name, tokenizer_file=tokenizer_file, block_size=64)
+        print('token dataset created')
 
         callbacks = {
             'on_train_start': self.onTrainingStarted,
