@@ -1,6 +1,11 @@
+import csv
+from os.path import exists, join
 from PyQt5.QtCore import QThread, QTimer, pyqtSignal
 from datetime import datetime, timedelta
 from os import environ
+from distutils.dir_util import copy_tree
+from json import dump, load
+
 environ["TOKENIZERS_PARALLELISM"] = "false"
 environ["OMP_NUM_THREADS"] = "1"
 
@@ -19,6 +24,10 @@ class ATGTrainer(QThread):
     __totalSteps = 2000
     __learningRate = 0.001
     __dataset = "training.txt"
+
+    __samples = {}
+
+    __dataRows = []
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -46,6 +55,8 @@ class ATGTrainer(QThread):
 
     def currentStep(self) -> int: return self.__currentStep
 
+    def trainingSamples(self) -> dict: return self.__samples
+
     def onTrainingStarted_main(self):
         print('training started was emitted')
         self.startTime = datetime.now()
@@ -70,7 +81,31 @@ class ATGTrainer(QThread):
         tokenizer_file = "aitextgen.tokenizer.json"
         config = GPT2ConfigCPU()
 
-        self.ai = aitextgen(tokenizer_file=tokenizer_file, config=config)
+        aitextgenArgs = {'tokenizer_file': tokenizer_file, 'config': config}
+
+        jsonInfo = {}
+
+        # Find the most recent model
+        repoFolderPath = './my_model'
+        modelsFolderPath = join(repoFolderPath, 'models')
+
+        self.__infoFilePath = join(repoFolderPath, 'info.json')
+        
+        if exists(self.__infoFilePath):
+            f = open(self.__infoFilePath)
+            jsonInfo = load(f)
+            f.close()
+
+        latestModel = jsonInfo.get('latest', None)
+
+        if latestModel is not None:
+            # There is a latest model, so let's use it as a base
+            latestModelPath = join(modelsFolderPath, latestModel)
+            aitextgenArgs['model_folder'] = latestModelPath
+
+        print(f'args to aitextgen: {aitextgenArgs}')
+        self.ai = aitextgen(**aitextgenArgs)
+
         self.data = TokenDataset(file_name, tokenizer_file=tokenizer_file, block_size=64)
 
         callbacks = {
@@ -81,7 +116,13 @@ class ATGTrainer(QThread):
             'on_model_saved': self.onModelSaved
         }
 
+        # Copy the "latest" folder to a new folder
+        # yyyy-mm-ddThh-mm-ss
+        self.__modelName = datetime.strftime(datetime.now(), '%Y-%m-%dT%H-%M-%S')
+        self.__fullModelPath = join(modelsFolderPath, self.__modelName)
+
         self.ai.train(self.data,
+            output_dir=self.__fullModelPath,
             learning_rate=self.learningRate(),
             batch_size=1,
             n_generate=5,
@@ -89,6 +130,10 @@ class ATGTrainer(QThread):
             generate_every=self.genEvery(),
             save_every=self.saveEvery(),
             print_generated=False, print_saved=False, callbacks=callbacks)
+
+        # Write hp.json with hyperparameters
+        self.saveModelMetadata()
+
 
     def onTrainingStarted(self):
         self.trainingStarted.emit()
@@ -100,12 +145,33 @@ class ATGTrainer(QThread):
     def onBatchEnded(self, steps, total, loss, avg_loss):
         # print(f"Step {steps}/{total} - loss {loss} and avg {avg_loss}")
         self.__currentStep = steps
+
+        currentTime = datetime.now()
+        elapsed = currentTime - self.startTime
+        row = [elapsed.total_seconds(), steps, loss, avg_loss]
+        self.__dataRows.append(row)
+
         self.batchEnded.emit(steps, total, loss, avg_loss)
 
     def onSampleTextGenerated(self, texts):
-        # print(f"Sample texts: {texts}")
+        self.__samples[str(self.currentStep())] = texts
         self.sampleTextGenerated.emit(self.currentStep(), texts)
 
     def onModelSaved(self, steps, total, dir):
         # print(f"Step {steps}/{total} - save to {dir}")
+        self.saveModelMetadata()
         self.modelSaved.emit(steps, total, dir)
+
+    def saveModelMetadata(self):
+        # Save metadata
+        hpFilePath = join(self.__fullModelPath, 'meta.json')
+        hpJson = {'learningRate': self.learningRate(), 'steps': self.currentStep(), 'samples': self.trainingSamples()}
+        with open(hpFilePath, 'w') as f: dump(hpJson, f)
+
+        # Save step data
+        stepFilePath = join(self.__fullModelPath, 'steps.csv')
+        with open(stepFilePath, 'w') as f: csv.writer(f).writerows(self.__dataRows)
+
+        # Update info.json with new latest model
+        newInfoJson = {'latest': self.__modelName}
+        with open(self.__infoFilePath, 'w') as f: dump(newInfoJson, f)

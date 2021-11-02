@@ -23,7 +23,7 @@ class TrainingHyperparameterSetupView(QWidget):
         self.learningRateBox.setValidator(self.learningRateValidator)
         self.learningRateBox.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
 
-        self.totalStepsSpinner = QSpinBox(self, minimum=0, maximum=999999, value=10000)
+        self.totalStepsSpinner = QSpinBox(self, minimum=0, maximum=999999, value=100)
         self.stepsPerGenSpinner = QSpinBox(self, minimum=0, maximum=999999, value=100)
         self.stepsPerSaveSpinner = QSpinBox(self, minimum=0, maximum=999999, value=1000)
         self.goButton = QPushButton('Start Training', self)
