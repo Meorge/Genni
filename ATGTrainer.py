@@ -3,12 +3,11 @@ from os.path import exists, join
 from PyQt5.QtCore import QThread, QTimer, pyqtSignal
 from datetime import datetime, timedelta
 from os import environ
-from distutils.dir_util import copy_tree
 from json import dump, load
 
 environ["TOKENIZERS_PARALLELISM"] = "false"
 environ["OMP_NUM_THREADS"] = "1"
-
+        
 class ATGTrainer(QThread):
     trainingStarted = pyqtSignal()
     trainingEnded = pyqtSignal()
@@ -72,12 +71,10 @@ class ATGTrainer(QThread):
 
     def run(self):
         from aitextgen_dev.aitextgen.TokenDataset import TokenDataset
-        from aitextgen_dev.aitextgen.tokenizers import train_tokenizer
         from aitextgen_dev.aitextgen.utils import GPT2ConfigCPU
         from aitextgen_dev.aitextgen import aitextgen
 
         file_name = self.dataset()
-        train_tokenizer(file_name)
         tokenizer_file = "aitextgen.tokenizer.json"
         config = GPT2ConfigCPU()
 
@@ -165,7 +162,15 @@ class ATGTrainer(QThread):
     def saveModelMetadata(self):
         # Save metadata
         hpFilePath = join(self.__fullModelPath, 'meta.json')
-        hpJson = {'parent': self.__latestModel, 'learningRate': self.learningRate(), 'steps': self.currentStep(), 'samples': self.trainingSamples()}
+        hpJson = {
+            'name': f'''Model at {datetime.now().strftime('%d %B %Y, %I:%M:%S %p %z')}''',
+            'comment': 'User comments go here',
+            'datetime': datetime.now().isoformat(timespec='seconds'),
+            'parent': self.__latestModel,
+            'learningRate': self.learningRate(),
+            'steps': self.currentStep(),
+            'samples': self.trainingSamples()
+            }
         with open(hpFilePath, 'w') as f: dump(hpJson, f)
 
         # Save step data
