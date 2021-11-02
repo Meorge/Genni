@@ -96,11 +96,11 @@ class ATGTrainer(QThread):
             jsonInfo = load(f)
             f.close()
 
-        latestModel = jsonInfo.get('latest', None)
+        self.__latestModel = jsonInfo.get('latest', None)
 
-        if latestModel is not None:
+        if self.__latestModel is not None:
             # There is a latest model, so let's use it as a base
-            latestModelPath = join(modelsFolderPath, latestModel)
+            latestModelPath = join(modelsFolderPath, self.__latestModel)
             aitextgenArgs['model_folder'] = latestModelPath
 
         print(f'args to aitextgen: {aitextgenArgs}')
@@ -165,7 +165,7 @@ class ATGTrainer(QThread):
     def saveModelMetadata(self):
         # Save metadata
         hpFilePath = join(self.__fullModelPath, 'meta.json')
-        hpJson = {'learningRate': self.learningRate(), 'steps': self.currentStep(), 'samples': self.trainingSamples()}
+        hpJson = {'parent': self.__latestModel, 'learningRate': self.learningRate(), 'steps': self.currentStep(), 'samples': self.trainingSamples()}
         with open(hpFilePath, 'w') as f: dump(hpJson, f)
 
         # Save step data
