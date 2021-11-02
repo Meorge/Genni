@@ -22,7 +22,7 @@ class ATGTrainer(QThread):
     __genEvery = 1000
     __totalSteps = 2000
     __learningRate = 0.001
-    __dataset = "training.txt"
+    __dataset = '2021-11-02T11-06-14_training.txt'
 
     __samples = {}
 
@@ -74,16 +74,17 @@ class ATGTrainer(QThread):
         from aitextgen_dev.aitextgen.utils import GPT2ConfigCPU
         from aitextgen_dev.aitextgen import aitextgen
 
-        file_name = self.dataset()
-        tokenizer_file = "aitextgen.tokenizer.json"
-        config = GPT2ConfigCPU()
-
-        aitextgenArgs = {'tokenizer_file': tokenizer_file, 'config': config}
-
         jsonInfo = {}
 
         # Find the most recent model
         repoFolderPath = './my_model'
+
+        datasetFolderPath = join(repoFolderPath, 'datasets', self.dataset())
+        datasetFilePath = join(datasetFolderPath, 'dataset')
+        tokenizerFilePath = join(datasetFolderPath, 'aitextgen.tokenizer.json')
+
+        aitextgenArgs = {'tokenizer_file': tokenizerFilePath, 'config': GPT2ConfigCPU()}
+
         modelsFolderPath = join(repoFolderPath, 'models')
 
         self.__infoFilePath = join(repoFolderPath, 'info.json')
@@ -100,10 +101,8 @@ class ATGTrainer(QThread):
             latestModelPath = join(modelsFolderPath, self.__latestModel)
             aitextgenArgs['model_folder'] = latestModelPath
 
-        print(f'args to aitextgen: {aitextgenArgs}')
         self.ai = aitextgen(**aitextgenArgs)
-
-        self.data = TokenDataset(file_name, tokenizer_file=tokenizer_file, block_size=64)
+        self.data = TokenDataset(datasetFilePath, tokenizer_file=tokenizerFilePath, block_size=64)
 
         callbacks = {
             'on_train_start': self.onTrainingStarted,
