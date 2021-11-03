@@ -2,6 +2,8 @@ from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QDoubleValidator
 from PyQt5.QtWidgets import QFileDialog, QFormLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QSizePolicy, QSpinBox, QVBoxLayout, QWidget
 
+from Views.DatasetSelectionView import DatasetSelectionView
+
 class TrainingHyperparameterSetupView(QWidget):
     """
     Hyperparameters:
@@ -16,7 +18,8 @@ class TrainingHyperparameterSetupView(QWidget):
 
         self.learningRateValidator = QDoubleValidator(0.0, 100.0, 5)
         self.learningRateValidator.setNotation(QDoubleValidator.Notation.ScientificNotation)
-        self.sourceDatasetPicker = FilePicker(self)
+        # self.sourceDatasetPicker = FilePicker(self)
+        self.sourceDatasetPicker = DatasetSelectionView(self)
 
 
         self.learningRateBox = QLineEdit('0.01', self)
@@ -40,7 +43,7 @@ class TrainingHyperparameterSetupView(QWidget):
 
     def getHyperparameters(self) -> dict:
         return {
-            'dataset': self.sourceDatasetPicker.filepath(),
+            'dataset': self.sourceDatasetPicker.dataset(),
             'steps': self.totalStepsSpinner.value(),
             'genEvery': self.stepsPerGenSpinner.value(),
             'saveEvery': self.stepsPerSaveSpinner.value(),

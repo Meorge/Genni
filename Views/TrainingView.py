@@ -4,22 +4,14 @@ from PyQt5.QtWidgets import QLabel, QPushButton, QSizePolicy, QVBoxLayout, QWidg
 from Views.TrainingHyperparameterSetupView import TrainingHyperparameterSetupView
 from Views.TrainingInProgressView import TrainingInProgressView
 from Views.SwipingPageView import SwipingPageView
+from Views.WizardTitleView import WizardTitleView
 
 class TrainingView(QWidget):
     trainingStarted = pyqtSignal(dict)
 
     def __init__(self, parent=None):
         super().__init__(parent)
-
-        self.trainingLabel = QLabel(self)
-        self.trainingLabelFont = QFont()
-        self.trainingLabelFont.setBold(True)
-        self.trainingLabelFont.setPointSizeF(self.trainingLabelFont.pointSizeF() * 2.0)
-        self.trainingLabel.setFont(self.trainingLabelFont)
-        self.trainingLabel.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
-
-        self.trainingSourceLabel = QLabel(self)
-        self.trainingSourceLabel.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
+        self.title = WizardTitleView(self)
 
         self.hpSetupView = TrainingHyperparameterSetupView(self)
         
@@ -32,20 +24,19 @@ class TrainingView(QWidget):
         self.hpSetupView.goButton.clicked.connect(self.startTraining)
 
         self.ly = QVBoxLayout(self)
-        self.ly.addWidget(self.trainingLabel, alignment=Qt.AlignmentFlag.AlignHCenter)
-        self.ly.addWidget(self.trainingSourceLabel, alignment=Qt.AlignmentFlag.AlignHCenter)
+        self.ly.addWidget(self.title, alignment=Qt.AlignmentFlag.AlignHCenter)
         self.ly.addWidget(self.pageView)
 
         self.setupHyperparameters()
 
     def setupHyperparameters(self):
-        self.trainingLabel.setText('Configure Training')
-        self.trainingSourceLabel.setText('Configure the training session.')
+        self.title.setTitle('Configure Training')
+        self.title.setSubtitle('Configure the training session.')
         self.pageView.slideInIdx(0)
         
     def startTraining(self):
-        self.trainingLabel.setText('Training...')
-        self.trainingSourceLabel.setText(f'''Finetuning on \"{self.hpSetupView.getHyperparameters()['dataset']}\".''')
+        self.title.setTitle('Training...')
+        self.title.setSubtitle(f'''Finetuning on \"{self.hpSetupView.getHyperparameters()['dataset']['meta']['title']}\".''')
         self.pageView.slideInIdx(1)
         self.trainingStarted.emit(self.hpSetupView.getHyperparameters())
 

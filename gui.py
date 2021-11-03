@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication
 import sys
 
 from ATGTrainer import ATGTrainer
+from ATGDatasetTokenizer import ATGDatasetTokenizer
 from Views.TrainingView import TrainingView
 
 class MyWindow(QMainWindow):
@@ -12,11 +13,15 @@ class MyWindow(QMainWindow):
         self.trainingView.trainingStarted.connect(self.doTraining)
         self.setCentralWidget(self.trainingView)
 
+        # self.t = ATGDatasetTokenizer(self)
+        # self.t.setDataset('training.txt')
+        # self.t.start()
+
     def doTraining(self, hp: dict):
         self.trainThread = ATGTrainer(self)
         self.trainingView.trainingInProgressView.trainingInfo.setTrainer(self.trainThread)
 
-        self.trainThread.setDataset(hp['dataset'])
+        # self.trainThread.setDataset(hp['dataset'])
         self.trainThread.setTotalSteps(hp['steps'])
         self.trainThread.setGenEvery(hp['genEvery'])
         self.trainThread.setSaveEvery(hp['saveEvery'])

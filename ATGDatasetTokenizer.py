@@ -1,7 +1,7 @@
 from os.path import exists, join
 from os import mkdir
 from shutil import copyfile
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import QThread
 from datetime import datetime
 from json import dump
 
@@ -37,6 +37,6 @@ class ATGDatasetTokenizer(QThread):
         train_tokenizer(thisDatasetFileDestPath, save_path=thisDatasetFolderPath)
 
         # Make meta json
-        metaJson = {'title': 'My Cool Dataset', 'comment': 'User comments can go here', 'imported': datetime.now().isoformat(timespec='seconds')}
+        metaJson = {'title': 'My Cool Dataset', 'comment': 'User comments can go here', 'originalFilename': fileName, 'imported': datetime.now().isoformat(timespec='seconds')}
         metaJsonFilePath = join(thisDatasetFolderPath, 'meta.json')
         with open(metaJsonFilePath, 'w') as f: dump(metaJson, f)
