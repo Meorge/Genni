@@ -22,4 +22,5 @@ def getDatasetsInRepository(repoName: str) -> List[str]:
                 'meta': meta
             })
             
+    validDatasets.sort(key=lambda i: i['meta']['imported'], reverse=True)
     return validDatasets

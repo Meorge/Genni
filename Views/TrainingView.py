@@ -1,6 +1,5 @@
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QColor, QFont
-from PyQt5.QtWidgets import QLabel, QPushButton, QSizePolicy, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QVBoxLayout, QWidget
 from Views.TrainingHyperparameterSetupView import TrainingHyperparameterSetupView
 from Views.TrainingInProgressView import TrainingInProgressView
 from Views.SwipingPageView import SwipingPageView
