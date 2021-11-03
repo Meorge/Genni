@@ -5,7 +5,7 @@ from os.path import join, isdir, exists
 from os import listdir
 from json import load
 
-def getDatasetsInRepository(repoName: str) -> List[str]:
+def getDatasetsInRepository(repoName: str) -> List[dict]:
     allDatasetsFolder = join(repoName, 'datasets')
     allPotentialDatasets = listdir(allDatasetsFolder)
 
@@ -24,3 +24,8 @@ def getDatasetsInRepository(repoName: str) -> List[str]:
             
     validDatasets.sort(key=lambda i: i['meta']['imported'], reverse=True)
     return validDatasets
+
+def getDatasetMetadata(repoName: str, datasetName: str) -> dict:
+    allDatasets = getDatasetsInRepository(repoName)
+    thisDataset = [i for i in allDatasets if i['pathName'] == datasetName][0]
+    return thisDataset['meta']

@@ -20,8 +20,8 @@ class MyWindow(QMainWindow):
     def doTraining(self, hp: dict):
         self.trainThread = ATGTrainer(self)
         self.trainingView.trainingInProgressView.trainingInfo.setTrainer(self.trainThread)
-
-        # self.trainThread.setDataset(hp['dataset'])
+        
+        self.trainThread.setDataset(hp['dataset'])
         self.trainThread.setTotalSteps(hp['steps'])
         self.trainThread.setGenEvery(hp['genEvery'])
         self.trainThread.setSaveEvery(hp['saveEvery'])

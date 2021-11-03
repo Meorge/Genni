@@ -22,7 +22,7 @@ class ATGTrainer(QThread):
     __genEvery = 1000
     __totalSteps = 2000
     __learningRate = 0.001
-    __dataset = '2021-11-02T11-06-14_training.txt'
+    __dataset = None
 
     __samples = {}
 
@@ -49,8 +49,8 @@ class ATGTrainer(QThread):
     def learningRate(self) -> float: return self.__learningRate
     def setLearningRate(self, rate: float): self.__learningRate = rate
 
-    def dataset(self) -> str: return self.__dataset
-    def setDataset(self, filename: str): self.__dataset = filename
+    def dataset(self) -> dict: return self.__dataset
+    def setDataset(self, dataset: dict): self.__dataset = dataset
 
     def currentStep(self) -> int: return self.__currentStep
 
@@ -79,8 +79,10 @@ class ATGTrainer(QThread):
         # Find the most recent model
         repoFolderPath = './my_model'
 
-        datasetFolderPath = join(repoFolderPath, 'datasets', self.dataset())
+        datasetFolderPath = join(repoFolderPath, 'datasets', self.dataset()['pathName'])
         datasetFilePath = join(datasetFolderPath, 'dataset')
+
+        datasetMetadata: dict = self.dataset()['meta']
         tokenizerFilePath = join(datasetFolderPath, 'aitextgen.tokenizer.json')
 
         aitextgenArgs = {'tokenizer_file': tokenizerFilePath, 'config': GPT2ConfigCPU()}
@@ -102,7 +104,7 @@ class ATGTrainer(QThread):
             aitextgenArgs['model_folder'] = latestModelPath
 
         self.ai = aitextgen(**aitextgenArgs)
-        self.data = TokenDataset(datasetFilePath, tokenizer_file=tokenizerFilePath, block_size=64)
+        self.data = TokenDataset(datasetFilePath, tokenizer_file=tokenizerFilePath, line_by_line=datasetMetadata.get('lineByLine', False), block_size=64)
 
         callbacks = {
             'on_train_start': self.onTrainingStarted,
@@ -125,6 +127,7 @@ class ATGTrainer(QThread):
             num_steps=self.totalSteps(),
             generate_every=self.genEvery(),
             save_every=self.saveEvery(),
+            
             print_generated=False, print_saved=False, callbacks=callbacks)
 
         # Write hp.json with hyperparameters
