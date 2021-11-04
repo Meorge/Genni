@@ -1,6 +1,6 @@
 import csv
 from os.path import exists, join
-from PyQt5.QtCore import QThread, QTimer, pyqtSignal
+from PyQt6.QtCore import QThread, QTimer, pyqtSignal
 from datetime import datetime, timedelta
 from os import environ
 from json import dump, load

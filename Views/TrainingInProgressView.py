@@ -1,7 +1,7 @@
-from PyQt5.QtCore import Qt, QPointF
-from PyQt5.QtGui import QColor, QPen
-from PyQt5.QtWidgets import QSizePolicy, QSplitter, QVBoxLayout
-from PyQt5.QtChart import QChart, QChartView, QLineSeries
+from PyQt6.QtCore import Qt, QPointF
+from PyQt6.QtGui import QColor, QPen
+from PyQt6.QtWidgets import QSizePolicy, QSplitter, QVBoxLayout
+from PyQt6.QtCharts import QChart, QChartView, QLineSeries
 
 from .TrainingInformationView import TrainingInformationView
 
@@ -22,10 +22,11 @@ class TrainingInProgressView(QSplitter):
         self.chart.addSeries(self.avgLossSeries)
         self.chart.createDefaultAxes()
 
-        self.chart.axisX().setRange(0,0)
-        self.chart.axisX().setTitleText("Step")
-        self.chart.axisX().setLabelFormat("%d")
-        self.chart.axisY().setRange(0,0)
+        self.xAxis, self.yAxis = self.chart.axes()
+        self.xAxis.setRange(0,0)
+        self.xAxis.setTitleText("Step")
+        self.xAxis.setLabelFormat("%d")
+        self.yAxis.setRange(0,0)
 
         self.chartView = QChartView(self.chart)
 
@@ -46,8 +47,8 @@ class TrainingInProgressView(QSplitter):
 
     def onBatchEnded(self, steps, total, loss, avg_loss):
         self.trainingInfo.onBatchEnded(steps, total, avg_loss)
-        self.chart.axisX().setRange(0, total)
-        self.chart.axisY().setRange(0, max(loss, self.chart.axisY(self.lossSeries).max()))
+        self.xAxis.setRange(0, total)
+        self.yAxis.setRange(0, max(loss, self.chart.axisY(self.lossSeries).max()))
 
         self.lossSeries << QPointF(steps, loss)
         self.avgLossSeries << QPointF(steps, avg_loss)

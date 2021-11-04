@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QMainWindow, QApplication
+from PyQt6.QtWidgets import QMainWindow, QApplication
 import sys
 
 from ATGTrainer import ATGTrainer
@@ -10,11 +10,11 @@ class MyWindow(QMainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
 
-        # self.trainingView = TrainingView(self)
-        # self.trainingView.trainingStarted.connect(self.doTraining)
-        # self.setCentralWidget(self.trainingView)
+        self.trainingView = TrainingView(self)
+        self.trainingView.trainingStarted.connect(self.doTraining)
+        self.setCentralWidget(self.trainingView)
 
-        self.setCentralWidget(RepositoryModelHistoryView(self))
+        # self.setCentralWidget(RepositoryModelHistoryView(self))
 
     def doTraining(self, hp: dict):
         self.trainThread = ATGTrainer(self)
@@ -38,4 +38,4 @@ if __name__ == "__main__":
     app = QApplication([])
     window = MyWindow()
     window.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

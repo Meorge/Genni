@@ -1,6 +1,6 @@
 
-from PyQt5.QtCore import QAbstractAnimation, QEasingCurve, QParallelAnimationGroup, QPoint, QPropertyAnimation, Qt, pyqtSlot
-from PyQt5.QtWidgets import QStackedWidget
+from PyQt6.QtCore import QAbstractAnimation, QEasingCurve, QParallelAnimationGroup, QPoint, QPropertyAnimation, Qt, pyqtSlot
+from PyQt6.QtWidgets import QStackedWidget
 
 class SwipingPageView(QStackedWidget):
     """
@@ -9,9 +9,9 @@ class SwipingPageView(QStackedWidget):
     def __init__(self, parent=None):
         super(SwipingPageView, self).__init__(parent)
 
-        self.m_direction = Qt.Horizontal
+        self.m_direction = Qt.Orientation.Horizontal
         self.m_speed = 500
-        self.m_animationtype = QEasingCurve.OutCubic
+        self.m_animationtype = QEasingCurve.Type.OutCubic
         self.m_now = 0
         self.m_next = 0
         self.m_wrap = False
@@ -65,7 +65,7 @@ class SwipingPageView(QStackedWidget):
         offsetx, offsety = self.frameRect().width(), self.frameRect().height()
         self.widget(_next).setGeometry(self.frameRect())
 
-        if not self.m_direction == Qt.Horizontal:
+        if not self.m_direction == Qt.Orientation.Horizontal:
             if _now < _next:
                 offsetx, offsety = 0, -offsety
             else:
@@ -105,7 +105,7 @@ class SwipingPageView(QStackedWidget):
         self.m_next = _next
         self.m_now = _now
         self.m_active = True
-        anim_group.start(QAbstractAnimation.DeleteWhenStopped)
+        anim_group.start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
 
     @pyqtSlot()
     def animationDoneSlot(self):

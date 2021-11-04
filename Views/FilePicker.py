@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QFileDialog, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QWidget
+from PyQt6.QtWidgets import QFileDialog, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QWidget
 
 class FilePicker(QWidget):
     def __init__(self, parent=None):

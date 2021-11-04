@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QSplitter, QTreeWidget, QTreeWidgetItem, QWidget
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QHeaderView, QSplitter, QTreeWidget, QTreeWidgetItem, QWidget
 
 from humanize import naturaltime
 from ModelRepo import getDatasetMetadata, getDurationString, getModelsInRepository
@@ -23,6 +23,15 @@ class RepositoryModelHistoryView(QSplitter):
         self.list.setHeaderLabels(['Title', 'Trained', 'Dataset', 'Duration', 'Learning Rate', 'Steps'])
         self.list.setColumnCount(6)
         self.list.setAlternatingRowColors(True)
+
+        h = self.list.header()
+        h.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        h.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        h.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        h.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
+        h.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
+        h.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
+        h.setStretchLastSection(False)
 
         self.descStuff = QWidget()
 

@@ -1,5 +1,5 @@
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtWidgets import QVBoxLayout, QWidget
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtWidgets import QVBoxLayout, QWidget
 from Views.TrainingHyperparameterSetupView import TrainingHyperparameterSetupView
 from Views.TrainingInProgressView import TrainingInProgressView
 from Views.SwipingPageView import SwipingPageView

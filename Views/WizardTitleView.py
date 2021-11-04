@@ -1,6 +1,6 @@
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QSizePolicy, QVBoxLayout, QWidget, QLabel
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont
+from PyQt6.QtWidgets import QSizePolicy, QVBoxLayout, QWidget, QLabel
 
 class WizardTitleView(QWidget):
     def __init__(self, parent=None):

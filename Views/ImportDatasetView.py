@@ -1,7 +1,7 @@
-from PyQt5.QtCore import QMargins, QRectF, Qt, pyqtSignal
-from PyQt5.QtGui import QColor, QPaintEvent, QPainter, QPen
-from PyQt5.QtWidgets import QAbstractButton, QCheckBox, QDialog, QFormLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QSizePolicy, QTextEdit, QVBoxLayout, QWidget
-from PyQt5.QtSvg import QSvgRenderer
+from PyQt6.QtCore import QMargins, QRectF, Qt, pyqtSignal
+from PyQt6.QtGui import QColor, QPaintEvent, QPainter, QPen
+from PyQt6.QtWidgets import QAbstractButton, QCheckBox, QDialog, QFormLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QSizePolicy, QTextEdit, QVBoxLayout, QWidget
+from PyQt6.QtSvg import QSvgRenderer
 from ATGDatasetTokenizer import ATGDatasetTokenizer
 from Views.SwipingPageView import SwipingPageView
 from Views.FilePicker import FilePicker
@@ -100,12 +100,12 @@ class DatasetSourceOption(QAbstractButton):
             p.setPen(QPen(blueBorderColor, 0.8))
 
         elif self.isEnabled():
-            p.setBrush(Qt.NoBrush)
+            p.setBrush(Qt.BrushStyle.NoBrush)
             greyBorderColor = QColor(COLOR_GREY_FILL)
             p.setPen(QPen(greyBorderColor, 0.6))
 
         else:
-            p.setBrush(Qt.NoBrush)
+            p.setBrush(Qt.BrushStyle.NoBrush)
             greyBorderColor = QColor(COLOR_GREY_FILL)
             p.setPen(QPen(greyBorderColor, 0.3))
 

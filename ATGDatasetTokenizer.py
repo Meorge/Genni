@@ -1,7 +1,7 @@
 from os.path import exists, join, basename
 from os import mkdir
 from shutil import copyfile
-from PyQt5.QtCore import QThread
+from PyQt6.QtCore import QThread
 from datetime import datetime
 from json import dump
 
