@@ -3,19 +3,18 @@ import sys
 
 from ATGTrainer import ATGTrainer
 from ATGDatasetTokenizer import ATGDatasetTokenizer
+from Views.RepositoryModelHistoryView import RepositoryModelHistoryView
 from Views.TrainingView import TrainingView
 
 class MyWindow(QMainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
 
-        self.trainingView = TrainingView(self)
-        self.trainingView.trainingStarted.connect(self.doTraining)
-        self.setCentralWidget(self.trainingView)
+        # self.trainingView = TrainingView(self)
+        # self.trainingView.trainingStarted.connect(self.doTraining)
+        # self.setCentralWidget(self.trainingView)
 
-        # self.t = ATGDatasetTokenizer(self)
-        # self.t.setDataset('training.txt')
-        # self.t.start()
+        self.setCentralWidget(RepositoryModelHistoryView(self))
 
     def doTraining(self, hp: dict):
         self.trainThread = ATGTrainer(self)

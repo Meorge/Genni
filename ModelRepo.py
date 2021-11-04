@@ -4,6 +4,23 @@ from typing import List
 from os.path import join, isdir, exists
 from os import listdir
 from json import load
+from datetime import datetime
+
+def getModelsInRepository(repoName: str) -> List[dict]:
+    allModelsFolder = join(repoName, 'models')
+    allPotentialModels = listdir(allModelsFolder)
+
+    validModels = []
+    for dir in allPotentialModels:
+        configPath = join(allModelsFolder, dir, 'config.json')
+        metaPath = join(allModelsFolder, dir, 'meta.json')
+        modelBinPath = join(allModelsFolder, dir, 'pytorch_model.bin')
+
+        if exists(configPath) and exists(metaPath) and exists(modelBinPath):
+            with open(metaPath) as f: validModels.append(load(f))
+
+    validModels.sort(key=lambda i: datetime.fromisoformat(i.get('datetime', '1970-01-01T00:00:00')), reverse=True)
+    return validModels
 
 def getDatasetsInRepository(repoName: str) -> List[dict]:
     allDatasetsFolder = join(repoName, 'datasets')
