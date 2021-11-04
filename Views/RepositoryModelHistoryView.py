@@ -1,8 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QSplitter, QTreeWidget, QTreeWidgetItem, QWidget
 
-from ModelRepo import getModelsInRepository
+from humanize import naturaltime
+from ModelRepo import getDatasetMetadata, getDurationString, getModelsInRepository
 
 class RepositoryModelHistoryView(QSplitter):
     def __init__(self, parent=None):
@@ -19,7 +20,7 @@ class RepositoryModelHistoryView(QSplitter):
         - learning rate
         - steps
         """
-        self.list.setHeaderLabels(['Title', 'Date', 'Dataset', 'Duration', 'Learning Rate', 'Steps'])
+        self.list.setHeaderLabels(['Title', 'Trained', 'Dataset', 'Duration', 'Learning Rate', 'Steps'])
         self.list.setColumnCount(6)
         self.list.setAlternatingRowColors(True)
 
@@ -36,13 +37,19 @@ class RepositoryModelHistoryView(QSplitter):
         self.list.clear()
 
         for i in getModelsInRepository('./my_model'):
-            formattedTime = datetime.fromisoformat(i.get('datetime', '1970-01-01T00:00:00')).strftime('%d %b %Y at %I:%M %p')
+            modelTime = datetime.fromisoformat(i.get('datetime', '1970-01-01T00:00:00'))
+            datasetName = getDatasetMetadata('./my_model', i.get('dataset')).get('title', 'Unknown')
+
+            durationString = ''
+            if i.get('duration', None) is not None:
+                durationString = getDurationString(timedelta(seconds=i.get('duration')))
+
             item = QTreeWidgetItem(self.list, [
                 i.get('name', 'Unnamed Model'), # TODO: let the user name models
-                formattedTime,
-                'Some Dataset', # TODO: put the dataset in the meta json why is that not already there?
-                '01:02:03', # TODO: grab the duration from the last time recorded in steps.csv
-                str(i.get('learningRate', 0)),
-                str(i.get('steps', 0))
+                modelTime.strftime('%d/%m/%y, %I:%I%p'),
+                datasetName,
+                durationString,
+                str(i.get('learningRate', None)),
+                str(i.get('steps', None))
                 ]
                 )

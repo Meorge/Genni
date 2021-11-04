@@ -3,6 +3,8 @@ from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QFrame, QGridLayout, QPlainTextEdit, QSizePolicy, QSplitter, QTreeView, QTreeWidget, QTreeWidgetItem, QWidget
 from datetime import timedelta
 
+from ModelRepo import getDurationString
+
 from .LabeledValueView import LabeledValueView
 
 COLOR_PURPLE = QColor(180, 170, 255)
@@ -97,11 +99,7 @@ class TrainingInformationView(QWidget):
             self.outputTextView.setPlainText(data)
 
     def onTimePassed(self, passed: timedelta, remaining):
-        hours, rem = divmod(passed.seconds, 3600)
-        minutes, seconds = divmod(rem, 60)
-        passedStr = f'{hours:02d}:{minutes:02d}:{seconds:02d}'
-        self.timeElapsedLabel.setValue(passedStr)
-
+        self.timeElapsedLabel.setValue(getDurationString(passed))
 
     def updateAvgSpeed(self, lastSpeed):
         # https://stackoverflow.com/a/3841706

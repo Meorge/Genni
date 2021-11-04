@@ -168,6 +168,8 @@ class ATGTrainer(QThread):
             'name': f'''Model at {datetime.now().strftime('%d %B %Y, %I:%M:%S %p %z')}''',
             'comment': 'User comments go here',
             'datetime': datetime.now().isoformat(timespec='seconds'),
+            'duration': (datetime.now() - self.startTime).total_seconds(),
+            'dataset': self.dataset().get('pathName', None),
             'parent': self.__latestModel,
             'learningRate': self.learningRate(),
             'steps': self.currentStep(),

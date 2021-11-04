@@ -4,7 +4,13 @@ from typing import List
 from os.path import join, isdir, exists
 from os import listdir
 from json import load
-from datetime import datetime
+from datetime import datetime, timedelta
+
+def getDurationString(passed: timedelta):
+    hours, rem = divmod(passed.seconds, 3600)
+    minutes, seconds = divmod(rem, 60)
+    passedStr = f'{hours:02d}:{minutes:02d}:{seconds:02d}'
+    return passedStr
 
 def getModelsInRepository(repoName: str) -> List[dict]:
     allModelsFolder = join(repoName, 'models')
@@ -44,5 +50,8 @@ def getDatasetsInRepository(repoName: str) -> List[dict]:
 
 def getDatasetMetadata(repoName: str, datasetName: str) -> dict:
     allDatasets = getDatasetsInRepository(repoName)
-    thisDataset = [i for i in allDatasets if i['pathName'] == datasetName][0]
-    return thisDataset['meta']
+    try:
+        thisDataset = [i for i in allDatasets if i['pathName'] == datasetName][0]
+        return thisDataset.get('meta', {})
+    except IndexError:
+        return {}
