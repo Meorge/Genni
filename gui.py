@@ -1,20 +1,53 @@
-from PyQt6.QtWidgets import QMainWindow, QApplication
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QAction, QIcon
+from PyQt6.QtWidgets import QDialog, QMainWindow, QApplication, QToolBar, QVBoxLayout
 import sys
 
 from ATGTrainer import ATGTrainer
 from ATGDatasetTokenizer import ATGDatasetTokenizer
+from ModelRepo import getRepoMetadata
 from Views.RepositoryModelHistoryView import RepositoryModelHistoryView
 from Views.TrainingView import TrainingView
 
-class MyWindow(QMainWindow):
+class MainWindow(QMainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
 
+        # Set up toolbar
+        self.tb = QToolBar(self)
+        self.tb.setFloatable(False)
+        self.tb.setMovable(False)
+        self.tb.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
+        self.addToolBar(self.tb)
+        self.setUnifiedTitleAndToolBarOnMac(True)
+
+        self.trainAction = QAction(QIcon('./Icons/Train.svg'), 'Train', self)
+        self.genAction = QAction(QIcon('./Icons/Generate.svg'), 'Generate', self)
+
+        self.addDatasetAction = QAction(QIcon('./Icons/Add Dataset.svg'), 'Add Dataset', self)
+        
+        self.tb.addAction(self.trainAction)
+        self.tb.addAction(self.genAction)
+        self.tb.addSeparator()
+        self.tb.addAction(self.addDatasetAction)
+
+        self.w = RepositoryModelHistoryView(self)
+        self.w.repositoryLoaded.connect(self.onRepositoryLoaded)
+        self.w.loadRepository('./my_model')
+        self.setCentralWidget(self.w)
+
+    def onRepositoryLoaded(self, repoName: str):
+        repoData: dict = getRepoMetadata(repoName)
+        self.setWindowTitle(repoData.get('title', 'Untitled Repository'))
+
+class TrainingWindow(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.trainingView = TrainingView(self)
         self.trainingView.trainingStarted.connect(self.doTraining)
-        self.setCentralWidget(self.trainingView)
-
-        # self.setCentralWidget(RepositoryModelHistoryView(self))
+        
+        self.ly = QVBoxLayout(self)
+        self.ly.addWidget(self.trainingView)
 
     def doTraining(self, hp: dict):
         self.trainThread = ATGTrainer(self)
@@ -36,6 +69,6 @@ class MyWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication([])
-    window = MyWindow()
+    window = MainWindow()
     window.show()
     sys.exit(app.exec())

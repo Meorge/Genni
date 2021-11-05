@@ -145,6 +145,7 @@ class DatasetSourceSelectView(QWidget):
         self.ly.addWidget(self.title, alignment=Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop)
         self.ly.addWidget(self.textFileOptionButton)
         self.ly.addWidget(self.twitterAcctOptionButton)
+        self.ly.addWidget(QWidget())
         self.ly.addWidget(self.nextButton)
 
 class DatasetFromTextConfigView(QWidget):

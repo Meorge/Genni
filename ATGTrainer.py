@@ -182,5 +182,7 @@ class ATGTrainer(QThread):
         with open(stepFilePath, 'w') as f: csv.writer(f).writerows(self.__dataRows)
 
         # Update info.json with new latest model
-        newInfoJson = {'latest': self.__modelName}
-        with open(self.__infoFilePath, 'w') as f: dump(newInfoJson, f)
+        with open(self.__infoFilePath, 'r+') as f:
+            newInfoJson = load(f)
+            newInfoJson['latest'] = self.__modelName
+            dump(newInfoJson, f)

@@ -12,6 +12,16 @@ def getDurationString(passed: timedelta):
     passedStr = f'{hours:02d}:{minutes:02d}:{seconds:02d}'
     return passedStr
 
+def getRepoMetadata(repoName: str) -> dict:
+    infoFilePath = join(repoName, 'info.json')
+
+    repoMetadata: dict = {}
+    if exists(infoFilePath):
+        with open(infoFilePath) as f:
+            repoMetadata = load(f)
+
+    return repoMetadata
+
 def getModelsInRepository(repoName: str) -> List[dict]:
     allModelsFolder = join(repoName, 'models')
     allPotentialModels = listdir(allModelsFolder)
@@ -23,7 +33,10 @@ def getModelsInRepository(repoName: str) -> List[dict]:
         modelBinPath = join(allModelsFolder, dir, 'pytorch_model.bin')
 
         if exists(configPath) and exists(metaPath) and exists(modelBinPath):
-            with open(metaPath) as f: validModels.append(load(f))
+            with open(metaPath) as f:
+                data = load(f)
+                data['filePath'] = dir
+                validModels.append(data)
 
     validModels.sort(key=lambda i: datetime.fromisoformat(i.get('datetime', '1970-01-01T00:00:00')), reverse=True)
     return validModels
