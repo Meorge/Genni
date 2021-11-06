@@ -185,4 +185,6 @@ class ATGTrainer(QThread):
         with open(self.__infoFilePath, 'r+') as f:
             newInfoJson = load(f)
             newInfoJson['latest'] = self.__modelName
+            f.seek(0)
+            f.truncate()
             dump(newInfoJson, f)

@@ -35,6 +35,9 @@ class RepositoryModelHistoryView(QSplitter):
 
         self.loadRepository('./my_model')
 
+    def refreshContent(self):
+        self.populateList()
+
     def repository(self) -> str: return self.__currentRepo
 
     def loadRepository(self, repoName: str):

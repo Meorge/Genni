@@ -6,6 +6,7 @@ import sys
 from ATGTrainer import ATGTrainer
 from ATGDatasetTokenizer import ATGDatasetTokenizer
 from ModelRepo import getRepoMetadata
+from Views.ImportDatasetView import ImportDatasetModal
 from Views.RepositoryModelHistoryView import RepositoryModelHistoryView
 from Views.TrainingView import TrainingView
 
@@ -21,10 +22,11 @@ class MainWindow(QMainWindow):
         self.addToolBar(self.tb)
         self.setUnifiedTitleAndToolBarOnMac(True)
 
-        self.trainAction = QAction(QIcon('./Icons/Train.svg'), 'Train', self)
+        self.trainAction = QAction(QIcon('./Icons/Train.svg'), 'Train', self, triggered=self.openTrainingModal)
         self.genAction = QAction(QIcon('./Icons/Generate.svg'), 'Generate', self)
+        self.genAction.setEnabled(False)
 
-        self.addDatasetAction = QAction(QIcon('./Icons/Add Dataset.svg'), 'Add Dataset', self)
+        self.addDatasetAction = QAction(QIcon('./Icons/Add Dataset.svg'), 'Add Dataset', self, triggered=self.openAddDatasetModal)
         
         self.tb.addAction(self.trainAction)
         self.tb.addAction(self.genAction)
@@ -40,13 +42,24 @@ class MainWindow(QMainWindow):
         repoData: dict = getRepoMetadata(repoName)
         self.setWindowTitle(repoData.get('title', 'Untitled Repository'))
 
-class TrainingWindow(QDialog):
+    def openTrainingModal(self):
+        self.trainingModal = TrainingModal(self)
+        self.trainingModal.exec()
+        self.w.refreshContent()
+
+    def openAddDatasetModal(self):
+        self.addDatasetModal = ImportDatasetModal(self)
+        self.addDatasetModal.exec()
+        self.w.refreshContent()
+
+class TrainingModal(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.trainingView = TrainingView(self)
         self.trainingView.trainingStarted.connect(self.doTraining)
         
         self.ly = QVBoxLayout(self)
+        self.ly.setContentsMargins(0,0,0,0)
         self.ly.addWidget(self.trainingView)
 
     def doTraining(self, hp: dict):

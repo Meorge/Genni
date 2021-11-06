@@ -3,6 +3,7 @@ from PyQt6.QtGui import QDoubleValidator
 from PyQt6.QtWidgets import QFileDialog, QFormLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QSizePolicy, QSpinBox, QVBoxLayout, QWidget
 
 from Views.DatasetSelectionView import DatasetSelectionView
+from Views.WizardTitleView import WizardTitleView
 
 class TrainingHyperparameterSetupView(QWidget):
     """
@@ -15,6 +16,9 @@ class TrainingHyperparameterSetupView(QWidget):
     """
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.title = WizardTitleView(self)
+        self.title.setTitle('Configure Training')
+        self.title.setSubtitle('Configure the training session.')
 
         self.learningRateValidator = QDoubleValidator(0.0, 100.0, 5)
         self.learningRateValidator.setNotation(QDoubleValidator.Notation.ScientificNotation)
@@ -31,6 +35,7 @@ class TrainingHyperparameterSetupView(QWidget):
         self.goButton = QPushButton('Start Training', self)
 
         self.ly = QFormLayout(self)
+        self.ly.addRow(self.title)
         self.ly.addRow('Dataset:', self.sourceDatasetPicker)
         self.ly.addRow('Total steps to train:', self.totalStepsSpinner)
         self.ly.addRow('Generate samples every:', self.stepsPerGenSpinner)
