@@ -1,14 +1,14 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction, QIcon
-from PyQt6.QtWidgets import QDialog, QMainWindow, QApplication, QToolBar, QVBoxLayout
+from PyQt6.QtWidgets import QMainWindow, QApplication, QToolBar
 import sys
+from ATGGenerator import ATGGenerator
 
-from ATGTrainer import ATGTrainer
-from ATGDatasetTokenizer import ATGDatasetTokenizer
 from ModelRepo import getRepoMetadata
+from Views.Generation.GeneratingView import GeneratingModal
 from Views.ImportDatasetView import ImportDatasetModal
 from Views.RepositoryModelHistoryView import RepositoryModelHistoryView
-from Views.TrainingView import TrainingView
+from Views.TrainingView import TrainingModal
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -23,8 +23,7 @@ class MainWindow(QMainWindow):
         self.setUnifiedTitleAndToolBarOnMac(True)
 
         self.trainAction = QAction(QIcon('./Icons/Train.svg'), 'Train', self, triggered=self.openTrainingModal)
-        self.genAction = QAction(QIcon('./Icons/Generate.svg'), 'Generate', self)
-        self.genAction.setEnabled(False)
+        self.genAction = QAction(QIcon('./Icons/Generate.svg'), 'Generate', self, triggered=self.openGenModal)
 
         self.addDatasetAction = QAction(QIcon('./Icons/Add Dataset.svg'), 'Add Dataset', self, triggered=self.openAddDatasetModal)
         
@@ -47,37 +46,15 @@ class MainWindow(QMainWindow):
         self.trainingModal.exec()
         self.w.refreshContent()
 
+    def openGenModal(self):
+        self.genModal = GeneratingModal(self)
+        self.genModal.exec()
+        self.w.refreshContent()
+
     def openAddDatasetModal(self):
         self.addDatasetModal = ImportDatasetModal(self)
         self.addDatasetModal.exec()
         self.w.refreshContent()
-
-class TrainingModal(QDialog):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.trainingView = TrainingView(self)
-        self.trainingView.trainingStarted.connect(self.doTraining)
-        
-        self.ly = QVBoxLayout(self)
-        self.ly.setContentsMargins(0,0,0,0)
-        self.ly.addWidget(self.trainingView)
-
-    def doTraining(self, hp: dict):
-        self.trainThread = ATGTrainer(self)
-        self.trainingView.trainingInProgressView.trainingInfo.setTrainer(self.trainThread)
-        
-        self.trainThread.setDataset(hp['dataset'])
-        self.trainThread.setTotalSteps(hp['steps'])
-        self.trainThread.setGenEvery(hp['genEvery'])
-        self.trainThread.setSaveEvery(hp['saveEvery'])
-        self.trainThread.setLearningRate(hp['learningRate'])
-
-        self.trainThread.trainingStarted.connect(self.trainingView.trainingInProgressView.onTrainingStarted)
-        self.trainThread.trainingEnded.connect(self.trainingView.trainingInProgressView.onTrainingEnded)
-        self.trainThread.batchEnded.connect(self.trainingView.trainingInProgressView.onBatchEnded)
-        self.trainThread.sampleTextGenerated.connect(self.trainingView.trainingInProgressView.onSamplesGenerated)
-        self.trainThread.timePassed.connect(self.trainingView.trainingInProgressView.trainingInfo.onTimePassed)
-        self.trainThread.start()
 
 
 if __name__ == "__main__":

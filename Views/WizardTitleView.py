@@ -1,5 +1,5 @@
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QColorConstants, QFont, QPaintEvent, QPainter
 from PyQt6.QtWidgets import QSizePolicy, QVBoxLayout, QWidget, QLabel
 
 class WizardTitleView(QWidget):
@@ -19,8 +19,10 @@ class WizardTitleView(QWidget):
         self.ly = QVBoxLayout(self)
         self.ly.addWidget(self.title, alignment=Qt.AlignmentFlag.AlignHCenter)
         self.ly.addWidget(self.subtitle, alignment=Qt.AlignmentFlag.AlignHCenter)
-        self.setLayout(self.ly)
 
+        self.setSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Fixed)
+        self.setLayout(self.ly)
+        
     def setTitle(self, value: str): self.title.setText(value)
     def setSubtitle(self, value: str): self.subtitle.setText(value)
 

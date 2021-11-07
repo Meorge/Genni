@@ -1,4 +1,4 @@
-from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtCore import QSize, Qt, pyqtSignal
 from PyQt6.QtGui import QDoubleValidator
 from PyQt6.QtWidgets import QFileDialog, QFormLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QSizePolicy, QSpinBox, QVBoxLayout, QWidget
 
@@ -14,6 +14,8 @@ class TrainingHyperparameterSetupView(QWidget):
     - steps per save
     - source dataset
     """
+    proceed = pyqtSignal()
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.title = WizardTitleView(self)
@@ -24,7 +26,6 @@ class TrainingHyperparameterSetupView(QWidget):
         self.learningRateValidator.setNotation(QDoubleValidator.Notation.ScientificNotation)
         self.sourceDatasetPicker = DatasetSelectionView(self)
 
-
         self.learningRateBox = QLineEdit('0.01', self)
         self.learningRateBox.setValidator(self.learningRateValidator)
         self.learningRateBox.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
@@ -32,7 +33,7 @@ class TrainingHyperparameterSetupView(QWidget):
         self.totalStepsSpinner = QSpinBox(self, minimum=0, maximum=999999, value=100)
         self.stepsPerGenSpinner = QSpinBox(self, minimum=0, maximum=999999, value=100)
         self.stepsPerSaveSpinner = QSpinBox(self, minimum=0, maximum=999999, value=1000)
-        self.goButton = QPushButton('Start Training', self)
+        self.goButton = QPushButton('Start Training', self, clicked=self.proceed)
 
         self.ly = QFormLayout(self)
         self.ly.addRow(self.title)
