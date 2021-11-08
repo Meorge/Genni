@@ -33,9 +33,8 @@ class GeneratingView(QWidget):
         self.pageView.slideInWgt(self.progView)
 
     def onGenerationFinished(self, samples: List[str]):
+        self.compView.setSamples(samples)
         self.pageView.slideInWgt(self.compView)
-        print(f'Samples complete! {samples}')
-        # TODO: populate it with the samples
 
 class GeneratingModal(QDialog):
     def __init__(self, parent=None):
