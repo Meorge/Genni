@@ -8,7 +8,7 @@ from ModelRepo import getRepoMetadata
 from Views.Generation.GeneratingView import GeneratingModal
 from Views.ImportDatasetView import ImportDatasetModal
 from Views.RepositoryModelHistoryView import RepositoryModelHistoryView
-from Views.TrainingView import TrainingModal
+from Views.Training.TrainingView import TrainingModal
 
 class MainWindow(QMainWindow):
     def __init__(self):

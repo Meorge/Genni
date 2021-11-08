@@ -3,7 +3,7 @@ from PyQt6.QtGui import QColor, QPen
 from PyQt6.QtWidgets import QHBoxLayout, QPushButton, QSizePolicy, QSplitter, QVBoxLayout, QWidget
 from PyQt6.QtCharts import QChart, QChartView, QLineSeries
 
-from Views.TrainingInformationView import TrainingInformationView
+from Views.Training.TrainingInformationView import TrainingInformationView
 from Views.WizardTitleView import WizardTitleView
 from Views.SwipingPageView import SwipingPageView
 

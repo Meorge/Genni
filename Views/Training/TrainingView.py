@@ -1,8 +1,8 @@
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QWidget
 from ATGTrainer import ATGTrainer
-from Views.TrainingHyperparameterSetupView import TrainingHyperparameterSetupView
-from Views.TrainingInProgressView import TrainingInProgressView
+from Views.Training.TrainingHyperparameterSetupView import TrainingHyperparameterSetupView
+from Views.Training.TrainingInProgressView import TrainingInProgressView
 from Views.SwipingPageView import SwipingPageView
 
 class TrainingView(QWidget):

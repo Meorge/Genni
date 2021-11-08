@@ -1,6 +1,8 @@
-from json import load
+from datetime import datetime
+from json import dump, load
 from PyQt6.QtCore import QThread, pyqtSignal
-from os.path import join
+from os.path import join, exists
+from os import mkdir
 from os import environ
 
 # TODO: top_p and top_k
@@ -77,6 +79,31 @@ class ATGGenerator(QThread):
             temperature=self.temperature(),
             return_as_list=True
         )
+
+
+        # make generated folder
+        generatedFolderPath = join(repoFolderPath, 'generated')
+        if not exists(generatedFolderPath): mkdir(generatedFolderPath)
+
+        # make subfolder for our output
+        currentTime = datetime.strftime(datetime.now(), '%Y-%m-%dT%H-%M-%S')
+        generatedSubfolderPath = join(generatedFolderPath, currentTime)
+        mkdir(generatedSubfolderPath)
+
+        metaJsonPath = join(generatedSubfolderPath, 'meta.json')
+        with open(metaJsonPath, 'w') as f:
+            dump({
+                'n': self.n(),
+                'prompt': self.prompt(),
+                'minLength': self.minLength(),
+                'maxLength': self.maxLength(),
+                'temperature': self.temperature(),
+                'datetime': datetime.now().isoformat(timespec='seconds')
+            }, f, indent=4)
+
+        dataJsonPath = join(generatedSubfolderPath, 'texts.json')
+        with open(dataJsonPath, 'w') as f:
+            dump(self.samples, f, indent=4)
 
         # TODO: save output to a JSON file
         self.samplesGenerated.emit(self.samples)
