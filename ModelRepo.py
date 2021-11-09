@@ -5,6 +5,7 @@ from os.path import join, isdir, exists
 from os import listdir
 from json import load
 from datetime import datetime, timedelta
+from csv import reader
 
 def getDurationString(passed: timedelta):
     hours, rem = divmod(passed.seconds, 3600)
@@ -88,3 +89,15 @@ def getDatasetMetadata(repoName: str, datasetName: str) -> dict:
         return thisDataset.get('meta', {})
     except IndexError:
         return {}
+
+def getModelStepData(repoName: str, modelName: str):
+    modelLossDataPath = join(repoName, 'models', modelName, 'steps.csv')
+
+    if not exists(modelLossDataPath): return None
+
+    rows = []
+    with open(modelLossDataPath) as f:
+        r = reader(f)
+        for row in r:
+            rows.append((float(row[0]), int(row[1]), float(row[2]), float(row[3])))
+    return rows

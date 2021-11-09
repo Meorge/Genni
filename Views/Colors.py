@@ -1,0 +1,7 @@
+from PyQt6.QtGui import QColor
+
+COLOR_PURPLE = QColor(180, 170, 255)
+COLOR_BLUE = QColor(170, 240, 255)
+COLOR_GREEN = QColor(220, 255, 170)
+COLOR_YELLOW = QColor(255, 250, 170)
+COLOR_RED = QColor(255, 175, 180)

@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import QHeaderView, QSplitter, QTreeWidget, QTreeWidgetItem
 
 from humanize import naturaltime
 from ModelRepo import getDatasetMetadata, getDurationString, getModelsInRepository, getRepoMetadata
+from Views.RepositoryModelDetailView import RepositoryModelDetailView
 
 class RepositoryModelHistoryView(QSplitter):
     repositoryLoaded = pyqtSignal(str)
@@ -17,6 +18,7 @@ class RepositoryModelHistoryView(QSplitter):
         self.list.setColumnCount(6)
         self.list.setAlternatingRowColors(True)
         self.list.setRootIsDecorated(False)
+        self.list.currentItemChanged.connect(self.onCurrentItemChanged)
 
         h = self.list.header()
         h.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
@@ -27,11 +29,14 @@ class RepositoryModelHistoryView(QSplitter):
         h.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
         h.setStretchLastSection(False)
 
-        self.descStuff = QWidget()
+        self.descStuff = RepositoryModelDetailView(self)
 
         self.setOrientation(Qt.Orientation.Vertical)
         self.addWidget(self.list)
         self.addWidget(self.descStuff)
+
+    def onCurrentItemChanged(self, current: QTreeWidgetItem, prev: QTreeWidgetItem):
+        self.descStuff.setData(current.data(0, Qt.ItemDataRole.UserRole))
 
     def refreshContent(self):
         self.populateList()

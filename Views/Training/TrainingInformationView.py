@@ -6,11 +6,7 @@ from datetime import timedelta
 from ModelRepo import getDurationString
 
 from Views.LabeledValueView import LabeledValueView
-
-COLOR_PURPLE = QColor(180, 170, 255)
-COLOR_BLUE = QColor(170, 240, 255)
-COLOR_GREEN = QColor(220, 255, 170)
-COLOR_YELLOW = QColor(255, 250, 170)
+from Views.Colors import *
 
 SMOOTHING_FACTOR = 0.005
 
