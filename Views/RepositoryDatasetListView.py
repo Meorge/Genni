@@ -3,6 +3,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import QHeaderView, QSplitter, QTreeWidget, QTreeWidgetItem, QWidget
 
 from ModelRepo import getDatasetsInRepository
+from Views.RepositoryDatasetDetailView import RepositoryDatasetDetailView
 
 class RepositoryDatasetListView(QSplitter):
     repositoryLoaded = pyqtSignal(str)
@@ -10,7 +11,7 @@ class RepositoryDatasetListView(QSplitter):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.list = QTreeWidget(self)
+        self.list = QTreeWidget(self, currentItemChanged=self.onCurrentItemChanged)
         self.list.setHeaderLabels(['Title', 'Filename', 'Line-by-line', 'Imported'])
         self.list.setColumnCount(4)
         self.list.setAlternatingRowColors(True)
@@ -23,7 +24,7 @@ class RepositoryDatasetListView(QSplitter):
         h.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
         h.setStretchLastSection(False)
 
-        self.descStuff = QWidget()
+        self.descStuff = RepositoryDatasetDetailView()
 
         self.setOrientation(Qt.Orientation.Vertical)
         self.addWidget(self.list)
@@ -43,7 +44,6 @@ class RepositoryDatasetListView(QSplitter):
         self.list.clear()
 
         for i in getDatasetsInRepository(self.repository()):
-            print(i)
             metadata = i.get('meta', {})
 
             title = metadata.get('title', 'Unnamed Dataset')
@@ -52,11 +52,18 @@ class RepositoryDatasetListView(QSplitter):
             importedTime = datetime.fromisoformat(metadata.get('imported', '1970-01-01T00:00:00'))
 
             item = QTreeWidgetItem(self.list, [
-                title, # TODO: let the user name models,
+                title,
                 filename,
                 str(lineByLine),
-                importedTime.strftime('%d/%m/%y, %I:%I%p')
+                importedTime.strftime('%d/%m/%y, %I:%M %p')
                 ]
                 )
 
             item.setData(0, Qt.ItemDataRole.UserRole, i)
+
+
+    def onCurrentItemChanged(self, current: QTreeWidgetItem, prev: QTreeWidgetItem):
+        if current is None:
+            return
+
+        self.descStuff.setData(current.data(0, Qt.ItemDataRole.UserRole))

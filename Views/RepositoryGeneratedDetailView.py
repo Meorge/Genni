@@ -93,6 +93,7 @@ class RepositoryGeneratedDetailHyperparamsView(QWidget):
         self.addRow(self.topPLabel, self.topKLabel)
         self.addDivider()
         self.addRow(self.temperatureLabel, self.seedLabel)
+        self.addDivider()
 
     def addRow(self, widget1: QWidget, widget2: QWidget):
         self.ly.addWidget(widget1, self.row, 0, Qt.AlignmentFlag.AlignTop)

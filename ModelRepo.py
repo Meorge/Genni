@@ -7,6 +7,8 @@ from json import load
 from datetime import datetime, timedelta
 from csv import reader
 
+__datasetTexts = {}
+
 def getDurationString(passed: timedelta):
     hours, rem = divmod(passed.seconds, 3600)
     minutes, seconds = divmod(rem, 60)
@@ -89,6 +91,19 @@ def getDatasetMetadata(repoName: str, datasetName: str) -> dict:
         return thisDataset.get('meta', {})
     except IndexError:
         return {}
+
+def getDatasetText(repoName: str, datasetName: str) -> str:
+    name = f'{repoName}/{datasetName}'
+    if name in __datasetTexts: return __datasetTexts[name]
+
+    targetDataset = join(repoName, 'datasets', datasetName, 'dataset')
+    text = None
+    if exists(targetDataset):
+        with open(targetDataset) as f:
+            text = f.read()
+
+    __datasetTexts[name] = text
+    return text
 
 def getModelStepData(repoName: str, modelName: str):
     modelLossDataPath = join(repoName, 'models', modelName, 'steps.csv')
