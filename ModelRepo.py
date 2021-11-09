@@ -61,6 +61,26 @@ def getDatasetsInRepository(repoName: str) -> List[dict]:
     validDatasets.sort(key=lambda i: i['meta']['imported'], reverse=True)
     return validDatasets
 
+def getGeneratedTextsInRepository(repoName: str) -> List[dict]:
+    allGensFolder = join(repoName, 'generated')
+    allPotentialGens = listdir(allGensFolder)
+
+    validGens = []
+    for dir in allPotentialGens:
+        metaPath = join(allGensFolder, dir, 'meta.json')
+        textsPath = join(allGensFolder, dir, 'texts.json')
+
+        if exists(metaPath) and exists(textsPath):
+            with open(metaPath) as f: meta = load(f)
+            with open(textsPath) as f: texts = load(f)
+            validGens.append({
+                'texts': textsPath,
+                'meta': meta
+            })
+
+    validGens.sort(key=lambda i: i['meta']['datetime'], reverse=True)
+    return validGens
+    
 def getDatasetMetadata(repoName: str, datasetName: str) -> dict:
     allDatasets = getDatasetsInRepository(repoName)
     try:

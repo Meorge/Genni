@@ -1,11 +1,12 @@
 
-from PyQt6.QtCore import QAbstractAnimation, QEasingCurve, QParallelAnimationGroup, QPoint, QPropertyAnimation, Qt, pyqtSlot
+from PyQt6.QtCore import QAbstractAnimation, QEasingCurve, QParallelAnimationGroup, QPoint, QPropertyAnimation, Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtWidgets import QStackedWidget
 
 class SwipingPageView(QStackedWidget):
     """
     Adapted from https://stackoverflow.com/a/52597972 to PyQt
     """
+    animationFinished = pyqtSignal()
     def __init__(self, parent=None):
         super(SwipingPageView, self).__init__(parent)
 
@@ -113,3 +114,4 @@ class SwipingPageView(QStackedWidget):
         self.widget(self.m_now).hide()
         self.widget(self.m_now).move(self.m_pnow)
         self.m_active = False
+        self.animationFinished.emit()

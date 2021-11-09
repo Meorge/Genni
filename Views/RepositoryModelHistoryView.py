@@ -67,6 +67,8 @@ class RepositoryModelHistoryView(QSplitter):
                 ]
                 )
 
+            item.setData(0, Qt.ItemDataRole.UserRole, i)
+
             item.setIcon(0, self.makeIcon(100, 0.1, i.get('filePath') == headModel))
 
     def makeIcon(self, size: int, padding: float, head: bool = False) -> QIcon:

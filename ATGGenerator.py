@@ -12,8 +12,10 @@ environ["OMP_NUM_THREADS"] = "1"
 
 class ATGGenerator(QThread):
     samplesGenerated = pyqtSignal(list)
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, samplesGenerated=None):
         super().__init__(parent)
+        if samplesGenerated is not None:
+            self.samplesGenerated.connect(samplesGenerated)
 
     __n = 1
     def n(self) -> int: return self.__n
@@ -80,7 +82,6 @@ class ATGGenerator(QThread):
             return_as_list=True
         )
 
-
         # make generated folder
         generatedFolderPath = join(repoFolderPath, 'generated')
         if not exists(generatedFolderPath): mkdir(generatedFolderPath)
@@ -105,5 +106,4 @@ class ATGGenerator(QThread):
         with open(dataJsonPath, 'w') as f:
             dump(self.samples, f, indent=4)
 
-        # TODO: save output to a JSON file
         self.samplesGenerated.emit(self.samples)

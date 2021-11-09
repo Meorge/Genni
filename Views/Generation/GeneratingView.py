@@ -23,7 +23,6 @@ class GeneratingView(QWidget):
         self.pageView.addWidget(self.compView)
 
         # passes hyperparameters out!
-        self.hpView.generationStarted.connect(self.generationStarted)
         self.hpView.generationStarted.connect(self.startGenerating)
 
         self.ly = QVBoxLayout(self)
@@ -31,6 +30,11 @@ class GeneratingView(QWidget):
 
     def startGenerating(self):
         self.pageView.slideInWgt(self.progView)
+        self.pageView.animationFinished.connect(self.emitGenerationStarted)
+
+    def emitGenerationStarted(self):
+        self.generationStarted.emit(self.hpView.getHyperparameters())
+        self.pageView.animationFinished.disconnect(self.emitGenerationStarted)
 
     def onGenerationFinished(self, samples: List[str]):
         self.compView.setSamples(samples)
@@ -48,11 +52,10 @@ class GeneratingModal(QDialog):
         self.ly.addWidget(self.trainingView)
 
     def doGeneration(self, hyperparameters: dict):
-        self.genThread = ATGGenerator(self)
+        self.genThread = ATGGenerator(self, samplesGenerated=self.trainingView.onGenerationFinished)
         self.genThread.setN(hyperparameters['n'])
         self.genThread.setPrompt(hyperparameters['prompt'])
         self.genThread.setMinLength(hyperparameters['minLength'])
         self.genThread.setMaxLength(hyperparameters['maxLength'])
         self.genThread.setTemperature(hyperparameters['temperature'])
-        self.genThread.samplesGenerated.connect(self.trainingView.onGenerationFinished)
         self.genThread.start()
