@@ -7,6 +7,7 @@ from Views.Colors import COLOR_BLUE, COLOR_GREEN, COLOR_PURPLE, COLOR_RED, COLOR
 from Views.LabeledValueView import LabeledValueView
 from datetime import datetime, timedelta
 
+# TODO: Make this a subclassable thing?
 class RepositoryModelDetailView(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -18,7 +19,6 @@ class RepositoryModelDetailView(QWidget):
         self.titleFont.setPointSizeF(self.titleFont.pointSizeF() * 1.5)
         self.titleLabel.setFont(self.titleFont)
         
-
         # Training date
         self.dateLabel = QLabel('8 November 2021 at 9:41 AM')
 

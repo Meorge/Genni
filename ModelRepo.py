@@ -75,7 +75,7 @@ def getGeneratedTextsInRepository(repoName: str) -> List[dict]:
             with open(metaPath) as f: meta = load(f)
             with open(textsPath) as f: texts = load(f)
             validGens.append({
-                'texts': textsPath,
+                'texts': texts,
                 'meta': meta
             })
 

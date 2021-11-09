@@ -3,6 +3,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import QHeaderView, QSplitter, QTreeWidget, QTreeWidgetItem, QWidget
 
 from ModelRepo import getDatasetsInRepository, getGeneratedTextsInRepository
+from Views.RepositoryGeneratedDetailView import RepositoryGeneratedDetailView
 
 class RepositoryGeneratedListView(QSplitter):
     repositoryLoaded = pyqtSignal(str)
@@ -10,7 +11,7 @@ class RepositoryGeneratedListView(QSplitter):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.list = QTreeWidget(self)
+        self.list = QTreeWidget(self, currentItemChanged=self.onCurrentItemChanged)
 
         columns = ['Generation Date', '# Samples', 'Min Length', 'Max Length', 'Temperature']
         self.list.setHeaderLabels(columns)
@@ -24,7 +25,7 @@ class RepositoryGeneratedListView(QSplitter):
         for i in range(1, len(columns)): h.setSectionResizeMode(i, QHeaderView.ResizeMode.ResizeToContents)
         h.setStretchLastSection(False)
 
-        self.descStuff = QWidget()
+        self.descStuff = RepositoryGeneratedDetailView()
 
         self.setOrientation(Qt.Orientation.Vertical)
         self.addWidget(self.list)
@@ -53,7 +54,7 @@ class RepositoryGeneratedListView(QSplitter):
             temperature = metadata.get('temperature', '---')
 
             item = QTreeWidgetItem(self.list, [
-                genDate.strftime('%A, %d %B %Y at %I:%M %p'),
+                genDate.strftime('%d %B %Y at %I:%M %p'),
                 str(n),
                 str(minLength),
                 str(maxLength),
@@ -61,3 +62,7 @@ class RepositoryGeneratedListView(QSplitter):
                 ]
                 )
             item.setData(0, Qt.ItemDataRole.UserRole, i)
+
+    def onCurrentItemChanged(self, current: QTreeWidgetItem, prev: QTreeWidgetItem):
+        if current is None: return
+        self.descStuff.setData(current.data(0, Qt.ItemDataRole.UserRole))
