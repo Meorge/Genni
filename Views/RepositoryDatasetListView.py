@@ -66,4 +66,4 @@ class RepositoryDatasetListView(QSplitter):
         if current is None:
             return
 
-        self.descStuff.setData(current.data(0, Qt.ItemDataRole.UserRole))
+        self.descStuff.setData(self.__currentRepo, current.data(0, Qt.ItemDataRole.UserRole))

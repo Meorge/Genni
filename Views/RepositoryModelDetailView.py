@@ -66,23 +66,25 @@ class RepositoryModelDetailView(QWidget):
         self.ly.addWidget(self.dateLabel, alignment=Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeading)
         self.ly.addWidget(self.statsSplitter)
 
-    def setData(self, data: dict):
+    def setData(self, repoName: str, data: dict):
         self.titleLabel.setText(data.get('name', 'Unnamed Model'))
         self.dateLabel.setText(datetime.fromisoformat(data.get('datetime', '1970-01-01T00:00:00')).strftime('%d %B %Y at %I:%M %p'))
 
         self.lossSeries.clear()
         self.avgLossSeries.clear()
-        stepData = getModelStepData('./my_model', data['filePath'])
-        for i in stepData:
-            elapsed, steps, loss, avgLoss = i
+        stepData = getModelStepData(repoName, data['filePath'])
 
-            self.xAxis.setRange(0, data['steps'])
-            self.yAxis.setRange(0, max(loss, self.yAxis.max()))
+        if stepData is not None:
+            for i in stepData:
+                elapsed, steps, loss, avgLoss = i
 
-            self.lossSeries << QPointF(steps, loss)
-            self.avgLossSeries << QPointF(steps, avgLoss)
+                self.xAxis.setRange(0, data['steps'])
+                self.yAxis.setRange(0, max(loss, self.yAxis.max()))
 
-        data['avgLoss'] = stepData[-1][3]
+                self.lossSeries << QPointF(steps, loss)
+                self.avgLossSeries << QPointF(steps, avgLoss)
+
+            data['avgLoss'] = stepData[-1][3]
         self.modelStats.setData(data)
 
 
@@ -137,7 +139,7 @@ class RepositoryModelDetailStatsView(QWidget):
         self.totalStepsLabel.setValue(str(data.get('steps', '---')))
         self.durationLabel.setValue(durationString)
         self.learningRateLabel.setValue(str(data.get('learningRate', '---')))
-        self.avgLossLabel.setValue(f'''{data.get('avgLoss', '---'):.2f}''')
+        self.avgLossLabel.setValue(f'''{data.get('avgLoss', 0):.2f}''')
 
         # Set up tree for viewing samples
         self.outputTreeView.clear()

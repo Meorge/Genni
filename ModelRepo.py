@@ -1,4 +1,5 @@
 
+from json.decoder import JSONDecodeError
 from typing import List
 
 from os.path import join, isdir, exists
@@ -21,12 +22,18 @@ def getRepoMetadata(repoName: str) -> dict:
     repoMetadata: dict = {}
     if exists(infoFilePath):
         with open(infoFilePath) as f:
-            repoMetadata = load(f)
+            try:
+                repoMetadata = load(f)
+            except JSONDecodeError:
+                repoMetadata = {}
 
     return repoMetadata
 
 def getModelsInRepository(repoName: str) -> List[dict]:
     allModelsFolder = join(repoName, 'models')
+    
+    if not exists(allModelsFolder): return []
+
     allPotentialModels = listdir(allModelsFolder)
 
     validModels = []
@@ -46,6 +53,9 @@ def getModelsInRepository(repoName: str) -> List[dict]:
 
 def getDatasetsInRepository(repoName: str) -> List[dict]:
     allDatasetsFolder = join(repoName, 'datasets')
+
+    if not exists(allDatasetsFolder): return []
+
     allPotentialDatasets = listdir(allDatasetsFolder)
 
     validDatasets = []
@@ -66,6 +76,9 @@ def getDatasetsInRepository(repoName: str) -> List[dict]:
 
 def getGeneratedTextsInRepository(repoName: str) -> List[dict]:
     allGensFolder = join(repoName, 'generated')
+
+    if not exists(allGensFolder): return []
+
     allPotentialGens = listdir(allGensFolder)
 
     validGens = []
@@ -94,7 +107,7 @@ def getDatasetMetadata(repoName: str, datasetName: str) -> dict:
 
 def getDatasetText(repoName: str, datasetName: str) -> str:
     name = f'{repoName}/{datasetName}'
-    if name in __datasetTexts: return __datasetTexts[name]
+    # if name in __datasetTexts: return __datasetTexts[name]
 
     targetDataset = join(repoName, 'datasets', datasetName, 'dataset')
     text = None
@@ -102,7 +115,8 @@ def getDatasetText(repoName: str, datasetName: str) -> str:
         with open(targetDataset) as f:
             text = f.read()
 
-    __datasetTexts[name] = text
+    print(f'look for {targetDataset}')
+    # __datasetTexts[name] = text
     return text
 
 def getModelStepData(repoName: str, modelName: str):

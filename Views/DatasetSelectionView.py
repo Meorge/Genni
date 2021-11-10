@@ -4,10 +4,10 @@ from Views.ImportDatasetView import ImportDatasetModal
 from ModelRepo import getDatasetsInRepository
 
 class DatasetSelectionView(QComboBox):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, repoName=None):
         super().__init__(parent)
         self.currentIndexChanged.connect(self.onCurrentIndexChanged)
-        self.__repository = './my_model'
+        self.__repository = repoName
         self.__lastValidIndex = 0
         self.setupItems()
 

@@ -16,7 +16,7 @@ class TrainingHyperparameterSetupView(QWidget):
     """
     proceed = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, repoName=None):
         super().__init__(parent)
         self.title = WizardTitleView(self)
         self.title.setTitle('Configure Training')
@@ -26,7 +26,7 @@ class TrainingHyperparameterSetupView(QWidget):
 
         self.learningRateValidator = QDoubleValidator(0.0, 100.0, 5)
         self.learningRateValidator.setNotation(QDoubleValidator.Notation.ScientificNotation)
-        self.sourceDatasetPicker = DatasetSelectionView(self)
+        self.sourceDatasetPicker = DatasetSelectionView(self, repoName=repoName)
 
         self.learningRateBox = QLineEdit('0.01', self)
         self.learningRateBox.setValidator(self.learningRateValidator)

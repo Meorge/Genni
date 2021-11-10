@@ -1,4 +1,5 @@
 import csv
+from json.decoder import JSONDecodeError
 from os.path import exists, join
 from PyQt6.QtCore import QThread, QTimer, pyqtSignal
 from datetime import datetime, timedelta
@@ -102,7 +103,8 @@ class ATGTrainer(QThread):
         
         if exists(self.__infoFilePath):
             f = open(self.__infoFilePath)
-            jsonInfo = load(f)
+            try: jsonInfo = load(f)
+            except JSONDecodeError: jsonInfo = {}
             f.close()
 
         if self.__gptSize is not None:
@@ -195,8 +197,14 @@ class ATGTrainer(QThread):
         with open(stepFilePath, 'w') as f: csv.writer(f).writerows(self.__dataRows)
 
         # Update info.json with new latest model
-        with open(self.__infoFilePath, 'r+') as f:
-            newInfoJson = load(f)
+        openMode = 'w'
+        if exists(self.__infoFilePath): openMode = 'r+'
+        with open(self.__infoFilePath, openMode) as f:
+            if exists(self.__infoFilePath):
+                try: newInfoJson = load(f)
+                except JSONDecodeError: newInfoJson = {}
+            else:
+                newInfoJson = {}
             newInfoJson['latest'] = self.__modelName
             f.seek(0)
             f.truncate()

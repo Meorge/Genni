@@ -31,12 +31,12 @@ class RepositoryDatasetDetailView(QWidget):
         # self.ly.addStretch()
         self.ly.addWidget(self.datasetText)
 
-    def setData(self, data: dict):
+    def setData(self, currentRepo: str, data: dict):
         print(data)
         self.titleLabel.setText(data.get('meta', {}).get('title', 'Untitled Dataset'))
         self.dateLabel.setText(datetime.fromisoformat(data.get('meta', {}).get('imported', '1970-01-01T00:00:00')).strftime('Imported %d %B %Y at %I:%M %p'))
 
         # Load the dataset text
-        text = getDatasetText('./my_model', data.get('pathName'))
+        text = getDatasetText(currentRepo, data.get('pathName'))
         if text is None: self.datasetText.setText('DATASET NOT FOUND')
         else: self.datasetText.setText(text)

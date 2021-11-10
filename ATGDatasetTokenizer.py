@@ -30,7 +30,7 @@ class ATGDatasetTokenizer(QThread):
     def run(self):
         repoFolderPath = self.__repoName
         currentTime = datetime.strftime(datetime.now(), '%Y-%m-%dT%H-%M-%S')
-        fileName = basename(self.dataset())
+        fileName = self.dataset() # TODO: make sure this is valid filepath
 
         # Ensure that the 'datasets' folder exists
         datasetsFolderPath = join(repoFolderPath, 'datasets')
@@ -38,7 +38,7 @@ class ATGDatasetTokenizer(QThread):
             mkdir(datasetsFolderPath)
 
         # Create folder inside of datasets with the file name and date
-        thisDatasetFolderPath = join(datasetsFolderPath, f'{currentTime}_{fileName}')
+        thisDatasetFolderPath = join(datasetsFolderPath, f'{currentTime}_{basename(fileName)}')
         mkdir(thisDatasetFolderPath)
 
         # Copy dataset file into this folder
