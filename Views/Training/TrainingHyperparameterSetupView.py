@@ -22,6 +22,8 @@ class TrainingHyperparameterSetupView(QWidget):
         self.title.setTitle('Configure Training')
         self.title.setSubtitle('Configure the training session.')
 
+        self.modelTitleBox = QLineEdit('My Model', self)
+
         self.learningRateValidator = QDoubleValidator(0.0, 100.0, 5)
         self.learningRateValidator.setNotation(QDoubleValidator.Notation.ScientificNotation)
         self.sourceDatasetPicker = DatasetSelectionView(self)
@@ -37,6 +39,7 @@ class TrainingHyperparameterSetupView(QWidget):
 
         self.ly = QFormLayout(self)
         self.ly.addRow(self.title)
+        self.ly.addRow('Title:', self.modelTitleBox)
         self.ly.addRow('Dataset:', self.sourceDatasetPicker)
         self.ly.addRow('Total steps to train:', self.totalStepsSpinner)
         self.ly.addRow('Generate samples every:', self.stepsPerGenSpinner)
@@ -48,6 +51,7 @@ class TrainingHyperparameterSetupView(QWidget):
 
     def getHyperparameters(self) -> dict:
         return {
+            'title': self.modelTitleBox.text(),
             'dataset': self.sourceDatasetPicker.dataset(),
             'steps': self.totalStepsSpinner.value(),
             'genEvery': self.stepsPerGenSpinner.value(),

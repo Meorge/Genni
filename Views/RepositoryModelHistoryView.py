@@ -36,6 +36,7 @@ class RepositoryModelHistoryView(QSplitter):
         self.addWidget(self.descStuff)
 
     def onCurrentItemChanged(self, current: QTreeWidgetItem, prev: QTreeWidgetItem):
+        if current is None: return
         self.descStuff.setData(current.data(0, Qt.ItemDataRole.UserRole))
 
     def refreshContent(self):

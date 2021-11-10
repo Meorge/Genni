@@ -11,8 +11,9 @@ class ATGDatasetTokenizer(QThread):
     __comment = ''
     __lineByLine = True
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, repoName=None):
         super().__init__(parent)
+        self.__repoName = repoName
 
     def dataset(self) -> str: return self.__dataset
     def setDataset(self, value: str): self.__dataset = value
@@ -27,7 +28,7 @@ class ATGDatasetTokenizer(QThread):
     def setLineByLine(self, lineByLine: bool): self.__lineByLine = lineByLine
 
     def run(self):
-        repoFolderPath = './my_model'
+        repoFolderPath = self.__repoName
         currentTime = datetime.strftime(datetime.now(), '%Y-%m-%dT%H-%M-%S')
         fileName = basename(self.dataset())
 

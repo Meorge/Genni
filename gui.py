@@ -35,15 +35,9 @@ class MainWindow(QMainWindow):
         self.tb.addAction(self.addDatasetAction)
 
         self.modelHistoryView = RepositoryModelHistoryView(self)
-        self.modelHistoryView.repositoryLoaded.connect(self.onRepositoryLoaded)
-        self.modelHistoryView.loadRepository('./my_model')
-
         self.datasetsView = RepositoryDatasetListView(self)
-        self.datasetsView.loadRepository('./my_model')
-
         self.genTextsView = RepositoryGeneratedListView(self)
-        self.genTextsView.loadRepository('./my_model')
-
+        
         self.tabBar = QTabBar(self)
         self.tabBar.setDrawBase(False)
         self.tabBar.addTab('Models')
@@ -69,25 +63,39 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(self.w)
 
-    def onRepositoryLoaded(self, repoName: str):
+        self.loadRepository('./my_model')
+
+    def loadRepository(self, repoName: str):
+        self.setRepositoryName(repoName)
         repoData: dict = getRepoMetadata(repoName)
         self.setWindowTitle(repoData.get('title', 'Untitled Repository'))
+        self.modelHistoryView.loadRepository(repoName)
+        self.datasetsView.loadRepository(repoName)
+        self.genTextsView.loadRepository(repoName)
 
     def openTrainingModal(self):
-        self.trainingModal = TrainingModal(self)
+        self.trainingModal = TrainingModal(self, self.repositoryName())
         self.trainingModal.exec()
-        self.modelHistoryView.refreshContent()
+        self.refreshContent()
 
     def openGenModal(self):
-        self.genModal = GeneratingModal(self)
+        self.genModal = GeneratingModal(self, self.repositoryName())
         self.genModal.exec()
-        self.modelHistoryView.refreshContent()
+        self.refreshContent()
 
     def openAddDatasetModal(self):
-        self.addDatasetModal = ImportDatasetModal(self)
+        self.addDatasetModal = ImportDatasetModal(self, self.repositoryName())
         self.addDatasetModal.exec()
-        self.modelHistoryView.refreshContent()
+        self.refreshContent()
 
+    def refreshContent(self):
+        self.modelHistoryView.refreshContent()
+        self.datasetsView.refreshContent()
+        self.genTextsView.refreshContent()
+
+    __repositoryName: str = None
+    def repositoryName(self) -> str: return self.__repositoryName
+    def setRepositoryName(self, repositoryName: str): self.__repositoryName = repositoryName
 
 if __name__ == "__main__":
     app = QApplication([])

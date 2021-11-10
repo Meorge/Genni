@@ -1,20 +1,17 @@
-from PyQt6.QtCore import QMargins, QRectF, Qt, pyqtSignal
-from PyQt6.QtGui import QColor, QPaintEvent, QPainter, QPen
-from PyQt6.QtWidgets import QAbstractButton, QCheckBox, QDialog, QFormLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QSizePolicy, QTextEdit, QVBoxLayout, QWidget
-from PyQt6.QtSvg import QSvgRenderer
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtWidgets import QCheckBox, QDialog, QFormLayout, QHBoxLayout, QLineEdit, QPushButton, QTextEdit, QVBoxLayout, QWidget
 from ATGDatasetTokenizer import ATGDatasetTokenizer
+from Views.ButtonWithIconAndDetailView import ButtonWithIconAndDetailView
 from Views.SwipingPageView import SwipingPageView
 from Views.FilePicker import FilePicker
 from Views.WizardTitleView import WizardTitleView
 
-COLOR_BLUE_FILL = QColor(15, 150, 255)
-COLOR_GREY_FILL = QColor(128, 128, 128)
-
 class ImportDatasetView(SwipingPageView):
     finished = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, repoName=None):
         super().__init__(parent)
+        self.__repoName = repoName
         self.sourceSelectView = DatasetSourceSelectView(self)
         self.sourceSelectView.proceed.connect(self.goToConfigTextFileView)
         # For text file
@@ -40,10 +37,9 @@ class ImportDatasetView(SwipingPageView):
     def goToImportTextDoneView(self): self.slideInWgt(self.importTextDoneView)
 
     def runImportDatasetThread(self):
-        print('run the dataset importer')
         info = self.configTextFileView.getConfigData()
         
-        self.datasetThread = ATGDatasetTokenizer(self)
+        self.datasetThread = ATGDatasetTokenizer(self, repoName=self.__repoName)
         self.datasetThread.setTitle(info['title'])
         self.datasetThread.setComment(info['comment'])
         self.datasetThread.setLineByLine(info['lineByLine'])
@@ -51,79 +47,6 @@ class ImportDatasetView(SwipingPageView):
 
         self.datasetThread.finished.connect(self.goToImportTextDoneView)
         self.datasetThread.start()
-
-class DatasetSourceOption(QAbstractButton):
-    def __init__(self, title='Title', desc='This is a description', svg=None, parent=None):
-        super().__init__(parent)
-        self.setAutoExclusive(True)
-        self.setCheckable(True)
-
-        self.__svg = svg
-
-        self.__titleLabel = QLabel(title)
-        titleLabelFont = self.__titleLabel.font()
-        titleLabelFont.setBold(True)
-        self.__titleLabel.setFont(titleLabelFont)
-
-        self.__descLabel = QLabel(desc)
-        self.__descLabel.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-
-        self.ly = QVBoxLayout(self)
-        self.ly.addWidget(self.__titleLabel, alignment=Qt.AlignmentFlag.AlignLeft)
-        self.ly.addWidget(self.__descLabel, alignment=Qt.AlignmentFlag.AlignLeft)
-        self.ly.setSpacing(self.ly.spacing() * 0.5)
-
-        contentsMargins = self.ly.contentsMargins()
-        contentsMargins.setLeft(contentsMargins.left() * 4)
-        self.ly.setContentsMargins(contentsMargins)
-
-    def titleText(self) -> str: return self.__titleLabel.text()
-    def setTitleText(self, value: str): self.__titleLabel.setText(value)
-
-    def descText(self) -> str: return self.__descLabel.text()
-    def setDescText(self, value: str): self.__descLabel.setText(value)
-
-    def svg(self) -> str: return self.__svg
-    def setSvg(self, value: str): self.__svg = value
-
-    def paintEvent(self, e: QPaintEvent) -> None:
-        p = QPainter(self)
-        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-
-        if self.isChecked():
-            blueBgColor = QColor(COLOR_BLUE_FILL)
-            blueBgColor.setAlphaF(0.25)
-            p.setBrush(blueBgColor)
-
-            blueBorderColor = QColor(COLOR_BLUE_FILL)
-            blueBorderColor.setAlphaF(0.75)
-            p.setPen(QPen(blueBorderColor, 0.8))
-
-        elif self.isEnabled():
-            p.setBrush(Qt.BrushStyle.NoBrush)
-            greyBorderColor = QColor(COLOR_GREY_FILL)
-            p.setPen(QPen(greyBorderColor, 0.6))
-
-        else:
-            p.setBrush(Qt.BrushStyle.NoBrush)
-            greyBorderColor = QColor(COLOR_GREY_FILL)
-            p.setPen(QPen(greyBorderColor, 0.3))
-
-        p.drawRoundedRect(e.rect().marginsRemoved(QMargins(1,1,1,1)), 5, 5, Qt.SizeMode.AbsoluteSize)
-
-        # Draw the icon
-        if self.svg() is not None:
-            iconRenderer = QSvgRenderer(self.svg(), parent=self)
-
-            iconMargins = 15
-            iconRectWidth = self.ly.contentsMargins().left() - iconMargins
-            iconRectHeight = iconRectWidth
-
-            iconRectHeightHalf = iconRectHeight / 2
-
-            buttonCenter = self.height() / 2
-            iconRect = QRectF(iconMargins / 2, buttonCenter - iconRectHeightHalf, iconRectWidth, iconRectHeight)
-            iconRenderer.render(p, iconRect)
 
 class DatasetSourceSelectView(QWidget):
     proceed = pyqtSignal()
@@ -134,8 +57,8 @@ class DatasetSourceSelectView(QWidget):
         self.title.setTitle('Add Dataset')
         self.title.setSubtitle('Choose a source for the new dataset.')
 
-        self.textFileOptionButton = DatasetSourceOption(title='Text file', desc='Train on a text file from your computer.', svg='Icons/New File.svg', parent=self)
-        self.twitterAcctOptionButton = DatasetSourceOption(title='Twitter account', desc='Train on Tweets from a specific Twitter account.', svg='Icons/Twitter.svg', parent=self)
+        self.textFileOptionButton = ButtonWithIconAndDetailView(title='Text file', desc='Train on a text file from your computer.', svg='Icons/New File.svg', parent=self)
+        self.twitterAcctOptionButton = ButtonWithIconAndDetailView(title='Twitter account', desc='Train on Tweets from a specific Twitter account.', svg='Icons/Twitter.svg', parent=self)
         self.nextButton = QPushButton('Next', clicked=self.proceed)
 
         self.textFileOptionButton.setChecked(True)
@@ -216,11 +139,11 @@ class DatasetFromTextImportDoneView(QWidget):
 
 
 class ImportDatasetModal(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, repoName=None):
         super().__init__(parent)
         self.setModal(True)
 
-        self.w = ImportDatasetView(self)
+        self.w = ImportDatasetView(self, repoName=repoName)
         self.w.finished.connect(self.accept)
 
         self.ly = QVBoxLayout(self)

@@ -12,8 +12,10 @@ environ["OMP_NUM_THREADS"] = "1"
 
 class ATGGenerator(QThread):
     samplesGenerated = pyqtSignal(list)
-    def __init__(self, parent=None, samplesGenerated=None):
+    def __init__(self, parent=None, repoName=None, samplesGenerated=None):
         super().__init__(parent)
+        self.__repoName = repoName
+
         if samplesGenerated is not None:
             self.samplesGenerated.connect(samplesGenerated)
 
@@ -41,7 +43,7 @@ class ATGGenerator(QThread):
         from aitextgen_dev.aitextgen.utils import GPT2ConfigCPU
         from aitextgen_dev.aitextgen import aitextgen
 
-        repoFolderPath = './my_model'
+        repoFolderPath = self.__repoName
 
         # Get the latest model folder path
         infoFilePath = join(repoFolderPath, 'info.json')

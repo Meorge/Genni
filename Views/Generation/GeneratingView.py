@@ -41,7 +41,7 @@ class GeneratingView(QWidget):
         self.pageView.slideInWgt(self.compView)
 
 class GeneratingModal(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, repoName=None):
         super().__init__(parent)
         self.trainingView = GeneratingView(self)
         self.trainingView.generationStarted.connect(self.doGeneration)
@@ -50,9 +50,10 @@ class GeneratingModal(QDialog):
         self.ly = QVBoxLayout(self)
         self.ly.setContentsMargins(0,0,0,0)
         self.ly.addWidget(self.trainingView)
+        self.__repoName = repoName
 
     def doGeneration(self, hyperparameters: dict):
-        self.genThread = ATGGenerator(self, samplesGenerated=self.trainingView.onGenerationFinished)
+        self.genThread = ATGGenerator(self, repoName=self.__repoName, samplesGenerated=self.trainingView.onGenerationFinished)
         self.genThread.setN(hyperparameters['n'])
         self.genThread.setPrompt(hyperparameters['prompt'])
         self.genThread.setMinLength(hyperparameters['minLength'])

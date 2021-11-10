@@ -17,6 +17,8 @@ class ATGTrainer(QThread):
 
     timePassed = pyqtSignal(timedelta, float)
 
+    __title = 'My Model'
+    __gptSize = None
     __currentStep = 0
     __saveEvery = 500
     __genEvery = 1000
@@ -28,14 +30,18 @@ class ATGTrainer(QThread):
 
     __dataRows = []
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, repoName=None):
         super().__init__(parent)
+        self.__repoName = repoName
         self.timePassedTimer = QTimer()
         self.timePassedTimer.setInterval(100)
         self.timePassedTimer.timeout.connect(self.onTimePassed)
 
         self.trainingStarted.connect(self.onTrainingStarted_main)
         self.trainingEnded.connect(self.onTrainingEnded_main)
+
+    def title(self) -> str: return self.__title
+    def setTitle(self, title: str): self.__title = title
 
     def saveEvery(self) -> int: return self.__saveEvery
     def setSaveEvery(self, steps: int): self.__saveEvery = steps
@@ -51,6 +57,9 @@ class ATGTrainer(QThread):
 
     def dataset(self) -> dict: return self.__dataset
     def setDataset(self, dataset: dict): self.__dataset = dataset
+
+    def gptSize(self) -> str: return self.__gptSize
+    def setGptSize(self, size: str): self.__gptSize = size
 
     def currentStep(self) -> int: return self.__currentStep
 
@@ -77,7 +86,7 @@ class ATGTrainer(QThread):
         jsonInfo = {}
 
         # Find the most recent model
-        repoFolderPath = './my_model'
+        repoFolderPath = self.__repoName
 
         datasetFolderPath = join(repoFolderPath, 'datasets', self.dataset()['pathName'])
         datasetFilePath = join(datasetFolderPath, 'dataset')
@@ -85,7 +94,7 @@ class ATGTrainer(QThread):
         datasetMetadata: dict = self.dataset()['meta']
         tokenizerFilePath = join(datasetFolderPath, 'aitextgen.tokenizer.json')
 
-        aitextgenArgs = {'tokenizer_file': tokenizerFilePath, 'config': GPT2ConfigCPU()}
+        aitextgenArgs = {'tokenizer_file': tokenizerFilePath, 'config': GPT2ConfigCPU(), 'cache_dir': './aitextgen_cache'}
 
         modelsFolderPath = join(repoFolderPath, 'models')
 
@@ -95,6 +104,10 @@ class ATGTrainer(QThread):
             f = open(self.__infoFilePath)
             jsonInfo = load(f)
             f.close()
+
+        if self.__gptSize is not None:
+            # We want to use a GPT model as a base
+            aitextgenArgs['tf_gpt2'] = self.__gptSize
 
         self.__latestModel = jsonInfo.get('latest', None)
 
@@ -165,7 +178,7 @@ class ATGTrainer(QThread):
         # Save metadata
         hpFilePath = join(self.__fullModelPath, 'meta.json')
         hpJson = {
-            'name': f'''Model at {datetime.now().strftime('%d %B %Y, %I:%M:%S %p %z')}''',
+            'name': self.title(),
             'comment': 'User comments go here',
             'datetime': datetime.now().isoformat(timespec='seconds'),
             'duration': (datetime.now() - self.startTime).total_seconds(),

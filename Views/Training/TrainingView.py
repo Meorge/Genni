@@ -1,6 +1,7 @@
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QWidget
 from ATGTrainer import ATGTrainer
+from Views.Training.TrainingFreshModelView import TrainingFreshModelGPT2SizeView, TrainingFreshModelView
 from Views.Training.TrainingHyperparameterSetupView import TrainingHyperparameterSetupView
 from Views.Training.TrainingInProgressView import TrainingInProgressView
 from Views.SwipingPageView import SwipingPageView
@@ -10,35 +11,47 @@ class TrainingView(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+
+        self.freshModelView = TrainingFreshModelView(self)
+        self.gptSizeView = TrainingFreshModelGPT2SizeView(self)
         self.hpSetupView = TrainingHyperparameterSetupView(self)
-        
         self.trainingInProgressView = TrainingInProgressView(self)
 
         self.pageView = SwipingPageView(self)
+        self.pageView.addWidget(self.freshModelView)
+        self.pageView.addWidget(self.gptSizeView)
         self.pageView.addWidget(self.hpSetupView)
         self.pageView.addWidget(self.trainingInProgressView)
 
-        # TODO: have the setup view emit a signal when it's ready to proceed
+        self.freshModelView.makeModelFromScratch.connect(self.setupHyperparameters)
+        self.freshModelView.baseModelOnOpenAI.connect(lambda: self.pageView.slideInWgt(self.gptSizeView))
+
+        self.gptSizeView.goBack.connect(lambda: self.pageView.slideInWgt(self.freshModelView))
+        self.gptSizeView.modelSizeChosen.connect(self.setupHyperparameters)
         self.hpSetupView.proceed.connect(self.startTraining)
 
         self.ly = QVBoxLayout(self)
         self.ly.addWidget(self.pageView)
 
-        self.setupHyperparameters()
+        # self.setupHyperparameters()
+        
 
-    def setupHyperparameters(self):
-        self.pageView.slideInIdx(0)
+    def setupHyperparameters(self, gptSize=None):
+        self.gptSize = gptSize
+        self.pageView.slideInWgt(self.hpSetupView)
         
     def startTraining(self):
-        self.pageView.slideInIdx(1)
+        self.pageView.slideInWgt(self.trainingInProgressView)
 
         # TODO: make this a smooth signal/slot thingy
-        self.trainingInProgressView.setHyperparameters(self.hpSetupView.getHyperparameters())
-        self.trainingStarted.emit(self.hpSetupView.getHyperparameters())
+        hp = self.hpSetupView.getHyperparameters()
+        hp['gpt2'] = self.gptSize
+        self.trainingInProgressView.setHyperparameters(hp)
+        self.trainingStarted.emit(hp)
 
 
 class TrainingModal(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, repoName=None):
         super().__init__(parent)
         self.trainingView = TrainingView(self)
         self.trainingView.trainingStarted.connect(self.doTraining)
@@ -48,10 +61,15 @@ class TrainingModal(QDialog):
         self.ly.setContentsMargins(0,0,0,0)
         self.ly.addWidget(self.trainingView)
 
+        self.__repoName = repoName
+
     def doTraining(self, hp: dict):
-        self.trainThread = ATGTrainer(self)
+        print(f'train with hps={hp}')
+        self.trainThread = ATGTrainer(self, self.__repoName)
         self.trainingView.trainingInProgressView.trainingInfo.setTrainer(self.trainThread)
         
+        self.trainThread.setTitle(hp['title'])
+        self.trainThread.setGptSize(hp['gpt2'])
         self.trainThread.setDataset(hp['dataset'])
         self.trainThread.setTotalSteps(hp['steps'])
         self.trainThread.setGenEvery(hp['genEvery'])
