@@ -81,7 +81,6 @@ class ATGTrainer(QThread):
 
     def run(self):
         from aitextgen_dev.aitextgen.TokenDataset import TokenDataset
-        from aitextgen_dev.aitextgen.utils import GPT2ConfigCPU
         from aitextgen_dev.aitextgen import aitextgen
 
         jsonInfo = {}
@@ -95,7 +94,9 @@ class ATGTrainer(QThread):
         datasetMetadata: dict = self.dataset()['meta']
         tokenizerFilePath = join(datasetFolderPath, 'aitextgen.tokenizer.json')
 
-        aitextgenArgs = {'tokenizer_file': tokenizerFilePath, 'config': GPT2ConfigCPU(), 'cache_dir': './aitextgen_cache'}
+        aitextgenArgs = {
+            # 'cache_dir': './aitextgen_cache'
+            }
 
         modelsFolderPath = join(repoFolderPath, 'models')
 
@@ -111,6 +112,9 @@ class ATGTrainer(QThread):
             # We want to use a GPT model as a base
             aitextgenArgs['tf_gpt2'] = self.__gptSize
 
+        # TODO: only do this if the user wants it!!
+        aitextgenArgs['model'] = 'EleutherAI/gpt-neo-125M'
+
         self.__latestModel = jsonInfo.get('latest', None)
 
         if self.__latestModel is not None:
@@ -118,8 +122,8 @@ class ATGTrainer(QThread):
             latestModelPath = join(modelsFolderPath, self.__latestModel)
             aitextgenArgs['model_folder'] = latestModelPath
 
+        print(f'arguments to aitextgen constructor: {aitextgenArgs}')
         self.ai = aitextgen(**aitextgenArgs)
-        self.data = TokenDataset(datasetFilePath, tokenizer_file=tokenizerFilePath, line_by_line=datasetMetadata.get('lineByLine', False), block_size=64)
 
         callbacks = {
             'on_train_start': self.onTrainingStarted,
@@ -134,16 +138,23 @@ class ATGTrainer(QThread):
         self.__modelName = datetime.strftime(datetime.now(), '%Y-%m-%dT%H-%M-%S')
         self.__fullModelPath = join(modelsFolderPath, self.__modelName)
 
-        self.ai.train(self.data,
-            output_dir=self.__fullModelPath,
-            learning_rate=self.learningRate(),
-            batch_size=1,
-            n_generate=5,
-            num_steps=self.totalSteps(),
-            generate_every=self.genEvery(),
-            save_every=self.saveEvery(),
-            
-            print_generated=False, print_saved=False, callbacks=callbacks)
+        trainArgs = {
+            'train_data': datasetFilePath,
+            'line_by_line': datasetMetadata.get('lineByLine', False),
+            'from_cache': False,
+            'num_steps': self.totalSteps(),
+            'generate_every': self.genEvery(),
+            'save_every': self.saveEvery(),
+            'learning_rate': self.learningRate(),
+            'fp16': False,
+            'batch_size': 1,
+            'progress_bar_refresh_rate': 1,
+            'output_dir': self.__fullModelPath,
+            'callbacks': callbacks
+        }
+
+        print(f'arguments to train: {trainArgs}')
+        self.ai.train(**trainArgs)
 
         # Write hp.json with hyperparameters
         self.saveModelMetadata()
@@ -197,15 +208,15 @@ class ATGTrainer(QThread):
         with open(stepFilePath, 'w') as f: csv.writer(f).writerows(self.__dataRows)
 
         # Update info.json with new latest model
-        openMode = 'w'
-        if exists(self.__infoFilePath): openMode = 'r+'
-        with open(self.__infoFilePath, openMode) as f:
-            if exists(self.__infoFilePath):
-                try: newInfoJson = load(f)
-                except JSONDecodeError: newInfoJson = {}
-            else:
-                newInfoJson = {}
-            newInfoJson['latest'] = self.__modelName
-            f.seek(0)
-            f.truncate()
-            dump(newInfoJson, f)
+        newInfoJson = {'latest': self.__modelName}
+        if exists(self.__infoFilePath):
+            f = open(self.__infoFilePath, 'r')
+            try:
+                newInfoJson = load(f)
+            except JSONDecodeError:
+                pass
+            f.close()
+
+        f = open(self.__infoFilePath, 'w')
+        dump(newInfoJson, f)
+        f.close()

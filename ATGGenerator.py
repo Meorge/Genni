@@ -71,8 +71,8 @@ class ATGGenerator(QThread):
 
         self.ai = aitextgen(
             model_folder=latestModelPath,
-            tokenizer_file=tokenizerPath,
-            config=GPT2ConfigCPU()
+            # tokenizer_file=tokenizerPath,
+            # config=GPT2ConfigCPU()
         )
 
         self.samples = self.ai.generate(
