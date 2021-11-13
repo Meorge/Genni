@@ -18,14 +18,9 @@ class ATGTrainer(QThread):
 
     timePassed = pyqtSignal(timedelta, float)
 
-    __title = 'My Model'
-    __gptSize = None
+    __config = {}
+
     __currentStep = 0
-    __saveEvery = 500
-    __genEvery = 1000
-    __totalSteps = 2000
-    __learningRate = 0.001
-    __dataset = None
 
     __samples = {}
 
@@ -41,26 +36,8 @@ class ATGTrainer(QThread):
         self.trainingStarted.connect(self.onTrainingStarted_main)
         self.trainingEnded.connect(self.onTrainingEnded_main)
 
-    def title(self) -> str: return self.__title
-    def setTitle(self, title: str): self.__title = title
-
-    def saveEvery(self) -> int: return self.__saveEvery
-    def setSaveEvery(self, steps: int): self.__saveEvery = steps
-
-    def genEvery(self) -> int: return self.__genEvery
-    def setGenEvery(self, steps: int): self.__genEvery = steps
-
-    def totalSteps(self) -> int: return self.__totalSteps
-    def setTotalSteps(self, steps: int): self.__totalSteps = steps
-
-    def learningRate(self) -> float: return self.__learningRate
-    def setLearningRate(self, rate: float): self.__learningRate = rate
-
-    def dataset(self) -> dict: return self.__dataset
-    def setDataset(self, dataset: dict): self.__dataset = dataset
-
-    def gptSize(self) -> str: return self.__gptSize
-    def setGptSize(self, size: str): self.__gptSize = size
+    def setConfig(self, config: dict): self.__config = config
+    def config(self) -> dict: return self.__config
 
     def currentStep(self) -> int: return self.__currentStep
 
@@ -83,20 +60,24 @@ class ATGTrainer(QThread):
         from aitextgen_dev.aitextgen.TokenDataset import TokenDataset
         from aitextgen_dev.aitextgen import aitextgen
 
+        dataset = self.__config['dataset']
+        steps = self.__config['steps']
+        genEvery = self.__config['genEvery']
+        saveEvery = self.__config['saveEvery']
+        learningRate = self.__config['learningRate']
+
         jsonInfo = {}
 
         # Find the most recent model
         repoFolderPath = self.__repoName
 
-        datasetFolderPath = join(repoFolderPath, 'datasets', self.dataset()['pathName'])
+        datasetFolderPath = join(repoFolderPath, 'datasets', dataset['pathName'])
         datasetFilePath = join(datasetFolderPath, 'dataset')
 
-        datasetMetadata: dict = self.dataset()['meta']
+        datasetMetadata: dict = dataset['meta']
         tokenizerFilePath = join(datasetFolderPath, 'aitextgen.tokenizer.json')
 
-        aitextgenArgs = {
-            # 'cache_dir': './aitextgen_cache'
-            }
+        aitextgenArgs = self.__config['constructorArgs']
 
         modelsFolderPath = join(repoFolderPath, 'models')
 
@@ -108,16 +89,10 @@ class ATGTrainer(QThread):
             except JSONDecodeError: jsonInfo = {}
             f.close()
 
-        if self.__gptSize is not None:
-            # We want to use a GPT model as a base
-            aitextgenArgs['tf_gpt2'] = self.__gptSize
-
-        # TODO: only do this if the user wants it!!
-        aitextgenArgs['model'] = 'EleutherAI/gpt-neo-125M'
 
         self.__latestModel = jsonInfo.get('latest', None)
 
-        if self.__latestModel is not None:
+        if self.__latestModel is not None and 'model' not in aitextgenArgs and 'tf_gpt2' not in aitextgenArgs:
             # There is a latest model, so let's use it as a base
             latestModelPath = join(modelsFolderPath, self.__latestModel)
             aitextgenArgs['model_folder'] = latestModelPath
@@ -142,10 +117,10 @@ class ATGTrainer(QThread):
             'train_data': datasetFilePath,
             'line_by_line': datasetMetadata.get('lineByLine', False),
             'from_cache': False,
-            'num_steps': self.totalSteps(),
-            'generate_every': self.genEvery(),
-            'save_every': self.saveEvery(),
-            'learning_rate': self.learningRate(),
+            'num_steps': steps,
+            'generate_every': genEvery,
+            'save_every': saveEvery,
+            'learning_rate': learningRate,
             'fp16': False,
             'batch_size': 1,
             'progress_bar_refresh_rate': 1,
@@ -191,13 +166,13 @@ class ATGTrainer(QThread):
         # Save metadata
         hpFilePath = join(self.__fullModelPath, 'meta.json')
         hpJson = {
-            'name': self.title(),
+            'name': self.__config['title'],
             'comment': 'User comments go here',
             'datetime': datetime.now().isoformat(timespec='seconds'),
             'duration': (datetime.now() - self.startTime).total_seconds(),
-            'dataset': self.dataset().get('pathName', None),
+            'dataset': self.__config['dataset'].get('pathName', None),
             'parent': self.__latestModel,
-            'learningRate': self.learningRate(),
+            'learningRate': self.__config['learningRate'],
             'steps': self.currentStep(),
             'samples': self.trainingSamples()
             }

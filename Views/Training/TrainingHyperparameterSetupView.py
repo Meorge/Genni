@@ -24,17 +24,18 @@ class TrainingHyperparameterSetupView(QWidget):
 
         self.modelTitleBox = QLineEdit('My Model', self)
 
+        self.totalStepsSpinner = QSpinBox(self, minimum=0, maximum=999999, value=100)
+        self.stepsPerGenSpinner = QSpinBox(self, minimum=0, maximum=999999, value=5)
+        self.stepsPerSaveSpinner = QSpinBox(self, minimum=0, maximum=999999, value=5)
+
         self.learningRateValidator = QDoubleValidator(0.0, 100.0, 5)
         self.learningRateValidator.setNotation(QDoubleValidator.Notation.ScientificNotation)
         self.sourceDatasetPicker = DatasetSelectionView(self, repoName=repoName)
 
-        self.learningRateBox = QLineEdit('0.01', self)
+        self.learningRateBox = QLineEdit('0.001', self)
         self.learningRateBox.setValidator(self.learningRateValidator)
         self.learningRateBox.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
 
-        self.totalStepsSpinner = QSpinBox(self, minimum=0, maximum=999999, value=100)
-        self.stepsPerGenSpinner = QSpinBox(self, minimum=0, maximum=999999, value=100)
-        self.stepsPerSaveSpinner = QSpinBox(self, minimum=0, maximum=999999, value=1000)
         self.goButton = QPushButton('Start Training', self, clicked=self.proceed)
 
         self.ly = QFormLayout(self)

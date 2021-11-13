@@ -2,6 +2,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import QFrame, QGridLayout, QPlainTextEdit, QSizePolicy, QSplitter, QTreeView, QTreeWidget, QTreeWidgetItem, QWidget
 from datetime import timedelta
+from ATGTrainer import ATGTrainer
 
 from ModelRepo import getDurationString
 
@@ -14,7 +15,7 @@ class TrainingInformationView(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.trainer = None
+        self.trainer: ATGTrainer = None
 
         self.currentStepLabel = LabeledValueView("Current Step", "---", COLOR_PURPLE)
         self.totalStepLabel = LabeledValueView("Total Steps", f"---", COLOR_PURPLE)
@@ -55,7 +56,7 @@ class TrainingInformationView(QWidget):
         self.setLayout(self.ly)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
 
-    def setTrainer(self, trainer): self.trainer = trainer
+    def setTrainer(self, trainer: ATGTrainer): self.trainer = trainer
 
     def addRow(self, widget1: QWidget, widget2: QWidget):
         self.ly.addWidget(widget1, self.currentGridRow, 0, Qt.AlignmentFlag.AlignTop)
@@ -73,8 +74,8 @@ class TrainingInformationView(QWidget):
         self.currentStepLabel.setValue(str(steps))
         self.totalStepLabel.setValue(str(total))
 
-        stepsToGen = (total - steps) % self.trainer.genEvery()
-        stepsToSave = (total - steps) % self.trainer.saveEvery()
+        stepsToGen = (total - steps) % self.trainer.config()['genEvery']
+        stepsToSave = (total - steps) % self.trainer.config()['saveEvery']
         self.stepsToGenTextLabel.setValue(str(stepsToGen))
         self.stepsToSaveModelLabel.setValue(str(stepsToSave))
 
