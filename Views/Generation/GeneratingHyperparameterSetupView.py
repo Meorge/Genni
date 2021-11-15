@@ -1,5 +1,6 @@
 from typing import List
 from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QDoubleSpinBox, QFormLayout, QLineEdit, QListWidget, QListWidgetItem, QPushButton, QSizePolicy, QSpinBox, QSplitter, QTextEdit, QWidget
 from Views.WizardTitleView import WizardTitleView
 
@@ -52,6 +53,16 @@ class GeneratingInProgressView(QWidget):
         self.ly = QFormLayout(self)
         self.ly.addRow(self.title)
 
+class ProcessingInProgressView(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.title = WizardTitleView(self)
+        self.title.setTitle('Processing Samples...')
+        self.title.setSubtitle('Almost done! We\'re comparing the generated samples against the loaded datasets to check for overtraining.')
+
+        self.ly = QFormLayout(self)
+        self.ly.addRow(self.title)
+
 class GeneratingCompleteView(QWidget):
     accept = pyqtSignal()
 
@@ -79,7 +90,11 @@ class GeneratingCompleteView(QWidget):
         self.ly.addRow(self.closeButton)
 
     def onCurrentItemChanged(self, current: QListWidgetItem, prev: QListWidgetItem):
-        self.itemDetail.setText(current.data(Qt.ItemDataRole.UserRole))
+        data = current.data(Qt.ItemDataRole.UserRole)
+        if isinstance(data, str):
+            self.itemDetail.setText(data)
+        elif isinstance(data, dict):
+            self.itemDetail.setText(data.get('text', ''))
 
     def setSamples(self, samples: List[str]):
         self.__samples = samples
@@ -87,5 +102,15 @@ class GeneratingCompleteView(QWidget):
         self.listOfItems.clear()
         for i in self.__samples:
             item = QListWidgetItem(self.listOfItems)
-            item.setText(i.replace('\n', ''))
+
+            textWithoutNewlines = i['text'].replace('\n', '')
+            item.setText(textWithoutNewlines)
             item.setData(Qt.ItemDataRole.UserRole, i)
+
+            if len(i['datasetMatches']) > 0:
+                topMatch = sorted(i.get('datasetMatches', []), key=lambda x: x.get('ratio', 0), reverse=True)[0]
+                ratio = topMatch.get('ratio', 0)
+                if ratio >= 1.0:
+                    item.setIcon(QIcon('Icons/Critical.svg'))
+                elif ratio > 0.5:
+                    item.setIcon(QIcon('Icons/Warning.svg'))

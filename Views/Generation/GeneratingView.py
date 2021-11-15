@@ -2,7 +2,7 @@ from typing import List
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QWidget
 from ATGGenerator import ATGGenerator
-from Views.Generation.GeneratingHyperparameterSetupView import GeneratingCompleteView, GeneratingHyperparameterSetupView, GeneratingInProgressView
+from Views.Generation.GeneratingHyperparameterSetupView import GeneratingCompleteView, GeneratingHyperparameterSetupView, GeneratingInProgressView, ProcessingInProgressView
 from Views.SwipingPageView import SwipingPageView
 
 class GeneratingView(QWidget):
@@ -14,12 +14,14 @@ class GeneratingView(QWidget):
 
         self.hpView = GeneratingHyperparameterSetupView(self)
         self.progView = GeneratingInProgressView(self)
+        self.processView = ProcessingInProgressView(self)
         self.compView = GeneratingCompleteView(self)
         self.compView.accept.connect(self.accept)
 
         self.pageView = SwipingPageView(self)
         self.pageView.addWidget(self.hpView)
         self.pageView.addWidget(self.progView)
+        self.pageView.addWidget(self.processView)
         self.pageView.addWidget(self.compView)
 
         # passes hyperparameters out!
@@ -35,6 +37,9 @@ class GeneratingView(QWidget):
     def emitGenerationStarted(self):
         self.generationStarted.emit(self.hpView.getHyperparameters())
         self.pageView.animationFinished.disconnect(self.emitGenerationStarted)
+
+    def onProcessingStarted(self):
+        self.pageView.slideInWgt(self.processView)
 
     def onGenerationFinished(self, samples: List[str]):
         self.compView.setSamples(samples)
@@ -53,7 +58,9 @@ class GeneratingModal(QDialog):
         self.__repoName = repoName
 
     def doGeneration(self, hyperparameters: dict):
-        self.genThread = ATGGenerator(self, repoName=self.__repoName, samplesGenerated=self.trainingView.onGenerationFinished)
+        self.genThread = ATGGenerator(self, repoName=self.__repoName)
+        self.genThread.processingStarted.connect(self.trainingView.onProcessingStarted)
+        self.genThread.processingFinished.connect(self.trainingView.onGenerationFinished)
         self.genThread.setN(hyperparameters['n'])
         self.genThread.setPrompt(hyperparameters['prompt'])
         self.genThread.setMinLength(hyperparameters['minLength'])

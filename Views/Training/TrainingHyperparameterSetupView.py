@@ -14,6 +14,7 @@ class TrainingHyperparameterSetupView(QWidget):
     - steps per save
     - source dataset
     """
+    goBack = pyqtSignal()
     proceed = pyqtSignal()
 
     def __init__(self, parent=None, repoName=None):
@@ -36,18 +37,29 @@ class TrainingHyperparameterSetupView(QWidget):
         self.learningRateBox.setValidator(self.learningRateValidator)
         self.learningRateBox.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
 
+        self.backButton = QPushButton('Back', self, clicked=self.goBack)
         self.goButton = QPushButton('Start Training', self, clicked=self.proceed)
 
-        self.ly = QFormLayout(self)
-        self.ly.addRow(self.title)
-        self.ly.addRow('Title:', self.modelTitleBox)
-        self.ly.addRow('Dataset:', self.sourceDatasetPicker)
-        self.ly.addRow('Total steps to train:', self.totalStepsSpinner)
-        self.ly.addRow('Generate samples every:', self.stepsPerGenSpinner)
-        self.ly.addRow('Save model every:', self.stepsPerSaveSpinner)
-        self.ly.addRow('Learning rate:', self.learningRateBox)
-        self.ly.addRow(self.goButton)
-        self.ly.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow)
+        self.btnLy = QHBoxLayout()
+        self.btnLy.addWidget(self.backButton)
+        self.btnLy.addWidget(self.goButton)
+
+        self.formLy = QFormLayout()
+        self.formLy.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow)
+        self.formLy.addRow('Title:', self.modelTitleBox)
+        self.formLy.addRow('Dataset:', self.sourceDatasetPicker)
+        self.formLy.addRow('Total steps to train:', self.totalStepsSpinner)
+        self.formLy.addRow('Generate samples every:', self.stepsPerGenSpinner)
+        self.formLy.addRow('Save model every:', self.stepsPerSaveSpinner)
+        self.formLy.addRow('Learning rate:', self.learningRateBox)
+        
+        self.ly = QVBoxLayout(self)
+
+        self.ly.addWidget(self.title)
+        self.ly.addLayout(self.formLy)
+        self.ly.addStretch()
+        self.ly.addLayout(self.btnLy)
+        
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
     def getHyperparameters(self) -> dict:

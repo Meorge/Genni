@@ -1,9 +1,13 @@
 from datetime import datetime
+from difflib import SequenceMatcher
 from json import dump, load
+from typing import List
 from PyQt6.QtCore import QThread, pyqtSignal
 from os.path import join, exists
 from os import mkdir
 from os import environ
+
+from ModelRepo import getDatasetsInRepository, processGeneratedSamples
 
 # TODO: top_p and top_k
 
@@ -11,13 +15,12 @@ environ["TOKENIZERS_PARALLELISM"] = "false"
 environ["OMP_NUM_THREADS"] = "1"
 
 class ATGGenerator(QThread):
-    samplesGenerated = pyqtSignal(list)
-    def __init__(self, parent=None, repoName=None, samplesGenerated=None):
+    processingStarted = pyqtSignal()
+    processingFinished = pyqtSignal(list)
+
+    def __init__(self, parent=None, repoName=None):
         super().__init__(parent)
         self.__repoName = repoName
-
-        if samplesGenerated is not None:
-            self.samplesGenerated.connect(samplesGenerated)
 
     __n = 1
     def n(self) -> int: return self.__n
@@ -84,6 +87,12 @@ class ATGGenerator(QThread):
             return_as_list=True
         )
 
+        self.processingStarted.emit()
+
+        self.samplesWithDatasetMatches = processGeneratedSamples(self.__repoName, self.samples, self.prompt())
+
+
+
         # make generated folder
         generatedFolderPath = join(repoFolderPath, 'generated')
         if not exists(generatedFolderPath): mkdir(generatedFolderPath)
@@ -106,6 +115,8 @@ class ATGGenerator(QThread):
 
         dataJsonPath = join(generatedSubfolderPath, 'texts.json')
         with open(dataJsonPath, 'w') as f:
-            dump(self.samples, f, indent=4)
+            dump(self.samplesWithDatasetMatches, f, indent=4)
 
-        self.samplesGenerated.emit(self.samples)
+        self.processingFinished.emit(self.samplesWithDatasetMatches)
+        
+

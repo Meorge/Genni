@@ -1,4 +1,5 @@
 
+from difflib import SequenceMatcher
 from json.decoder import JSONDecodeError
 from typing import List
 
@@ -130,3 +131,38 @@ def getModelStepData(repoName: str, modelName: str):
         for row in r:
             rows.append((float(row[0]), int(row[1]), float(row[2]), float(row[3])))
     return rows
+
+def processGeneratedSamples(repoName: str, genTexts: List[str], prompt: str) -> List[dict]:
+    """
+    We want to check each of the generated samples against the training data
+    to see if there's overtraining going on.
+    """
+
+    output = [{ 'text': text, 'datasetMatches': []} for text in genTexts]
+
+    for datasetMeta in getDatasetsInRepository(repoName):
+        datasetPath = join(repoName, 'datasets', datasetMeta['pathName'], 'dataset')
+        with open(datasetPath) as f: datasetText = f.read()
+        seqMatcher = SequenceMatcher(
+            isjunk=lambda x: x == prompt, 
+            a=datasetText
+        )
+
+        for genTextIndex, genText in enumerate(genTexts):
+            genText = genText.removeprefix(prompt)
+            seqMatcher.set_seq2(genText)
+            longestMatch = seqMatcher.find_longest_match()
+
+            ratioMatchToGenerated = longestMatch.size / len(genText)
+
+            outputItem = {
+                'dataset': datasetMeta['pathName'],
+                'datasetMatchIndex': longestMatch.a,
+                'genTextMatchIndex': longestMatch.b,
+                'size': longestMatch.size,
+                'ratio': ratioMatchToGenerated
+            }
+
+            output[genTextIndex]['datasetMatches'].append(outputItem)
+
+    return output

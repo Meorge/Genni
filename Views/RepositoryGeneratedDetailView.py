@@ -1,7 +1,8 @@
 from datetime import datetime
-from typing import List
+from difflib import SequenceMatcher
+from typing import List, Union
 from PyQt6.QtCore import QSize, Qt
-from PyQt6.QtGui import QColor, QColorConstants
+from PyQt6.QtGui import QColor, QColorConstants, QIcon
 from PyQt6.QtWidgets import QFrame, QGridLayout, QLabel, QListWidget, QListWidgetItem, QSizePolicy, QSplitter, QTabWidget, QTextEdit, QVBoxLayout, QWidget
 from Views.Colors import COLOR_BLUE, COLOR_PURPLE, COLOR_RED, COLOR_YELLOW
 
@@ -45,7 +46,14 @@ class RepositoryGeneratedDetailView(QWidget):
     def onCurrentItemChanged(self, current: QListWidgetItem, prev: QListWidgetItem):
         self.sampleDetail.setText('')
         if current is None: return
-        self.sampleDetail.setText(current.data(Qt.ItemDataRole.UserRole))
+
+        currentSelectedSample = current.data(Qt.ItemDataRole.UserRole)
+
+        if isinstance(currentSelectedSample, str):
+            self.sampleDetail.setText(currentSelectedSample)
+        elif isinstance(currentSelectedSample, dict):
+            self.sampleDetail.setText(currentSelectedSample.get('text', ''))
+
 
     def setData(self, data: dict):
         genDate = datetime.fromisoformat(data.get('meta', {}).get('datetime', '1970-01-01T00:00:00'))
@@ -53,14 +61,36 @@ class RepositoryGeneratedDetailView(QWidget):
         self.setSamples(data.get('texts', []))
         self.hpView.setData(data)
 
-    def setSamples(self, samples: List[str]):
+        # checkForOvertraining('guybot2', data.get('texts', []), data['meta']['prompt'])
+
+
+    def setSamples(self, samples: List[Union[str, dict]]):
         self.__samples = samples
 
         self.sampleList.clear()
         for i in self.__samples:
             item = QListWidgetItem(self.sampleList)
-            item.setText(i.replace('\n', ''))
             item.setData(Qt.ItemDataRole.UserRole, i)
+
+            # Handle these differently, depending on whether they're just strings
+            # or there's extra data associated
+            if isinstance(i, str):
+                i: str
+                item.setText(i.replace('\n', ''))
+                
+
+            elif isinstance(i, dict):
+                i: dict
+                item.setText(i.get('text', '').replace('\n', ''))
+
+                if len(i.get('datasetMatches', [])) > 0:
+                    topMatch = sorted(i.get('datasetMatches', []), key=lambda x: x.get('ratio', 0), reverse=True)[0]
+                    ratio = topMatch.get('ratio', 0)
+
+                    if ratio >= 1.0:
+                        item.setIcon(QIcon('Icons/Critical.svg'))
+                    elif ratio > 0.5:
+                        item.setIcon(QIcon('Icons/Warning.svg'))
 
 
 class RepositoryGeneratedDetailHyperparamsView(QWidget):

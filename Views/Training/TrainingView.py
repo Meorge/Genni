@@ -27,19 +27,26 @@ class TrainingView(QWidget):
 
         self.freshModelView.makeModelFromScratch.connect(self.setupHyperparameters)
         self.freshModelView.baseModelOnOpenAI.connect(lambda: self.pageView.slideInWgt(self.gptSizeView))
-        self.freshModelView.baseModelOnHuggingFace.connect(lambda: self.pageView.slideInWgt(self.huggingFaceRepoView))
+        self.freshModelView.baseModelOnHuggingFace.connect(self.showHuggingFacePage)
 
-        self.gptSizeView.goBack.connect(lambda: self.pageView.slideInWgt(self.freshModelView))
+        self.gptSizeView.goBack.connect(self.showIntroPage)
         self.gptSizeView.modelSizeChosen.connect(self.setupHyperparameters)
 
-        self.huggingFaceRepoView.goBack.connect(lambda: self.pageView.slideInWgt(self.freshModelView))
+        self.huggingFaceRepoView.goBack.connect(self.showIntroPage)
         self.huggingFaceRepoView.huggingFaceRepoChosen.connect(self.setupHyperparameters)
 
+        self.hpSetupView.goBack.connect(self.showIntroPage)
         self.hpSetupView.proceed.connect(self.startTraining)
 
         self.ly = QVBoxLayout(self)
         self.ly.addWidget(self.pageView)
         
+    def showIntroPage(self):
+        self.pageView.slideInWgt(self.freshModelView)
+
+    def showHuggingFacePage(self):
+        self.huggingFaceRepoView.initPage()
+        self.pageView.slideInWgt(self.huggingFaceRepoView)
 
     def setupHyperparameters(self, config=None):
         self.__config = config

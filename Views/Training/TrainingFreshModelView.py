@@ -1,5 +1,6 @@
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtWidgets import QHBoxLayout, QLineEdit, QPushButton, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QHBoxLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
+from CheckHuggingFaceThread import CheckHuggingFaceThread
 from Views.ButtonWithIconAndDetailView import ButtonWithIconAndDetailView
 from Views.WizardTitleView import WizardTitleView
 
@@ -88,18 +89,23 @@ class SelectHuggingFaceRepoView(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
+        self.searchForModelThread = CheckHuggingFaceThread(self)
+
         self.title = WizardTitleView(self)
         self.title.setTitle('Select Hugging Face Repository')
         self.title.setSubtitle('Type the name of the Hugging Face repository you\'d like to base your model on.')
 
         self.repoEdit = QLineEdit()
+        self.errorLabel = QLabel('')
+        self.errorLabel.setAlignment(Qt.AlignmentFlag.AlignHCenter)
 
         self.backButton = QPushButton('Back', clicked=self.goBack)
-        self.nextButton = QPushButton('Next', clicked=self.onModelSizeChosen)
+        self.nextButton = QPushButton('Next', clicked=self.onSearchForModelRequested)
 
         self.ly = QVBoxLayout(self)
         self.ly.addWidget(self.title, alignment=Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop)
         self.ly.addWidget(self.repoEdit)
+        self.ly.addWidget(self.errorLabel)
         self.ly.addStretch()
 
         self.btnLy = QHBoxLayout()
@@ -108,5 +114,27 @@ class SelectHuggingFaceRepoView(QWidget):
         self.btnLy.setContentsMargins(0,0,0,0)
         self.ly.addLayout(self.btnLy)
 
-    def onModelSizeChosen(self):
-        self.huggingFaceRepoChosen.emit({ 'model': self.repoEdit.text() })
+    def initPage(self):
+        self.repoEdit.setEnabled(True)
+        self.nextButton.setEnabled(True)
+        self.backButton.setEnabled(True)
+        self.repoEdit.setText('')
+        self.errorLabel.setText('')
+
+    def onSearchForModelRequested(self):
+        self.repoEdit.setEnabled(False)
+        self.nextButton.setEnabled(False)
+        self.backButton.setEnabled(False)
+
+        self.searchForModelThread.setModelName(self.repoEdit.text())
+        self.searchForModelThread.result.connect(self.onSearchForModelComplete)
+        self.searchForModelThread.start()
+
+    def onSearchForModelComplete(self, success: bool):
+        self.repoEdit.setEnabled(True)
+        self.nextButton.setEnabled(True)
+        self.backButton.setEnabled(True)
+        if success:
+            self.huggingFaceRepoChosen.emit({ 'model': self.searchForModelThread.modelName() })
+        else:
+            self.errorLabel.setText(f'The repository \'{self.searchForModelThread.modelName()}\' could not be found on Hugging Face. Please check the repository name.')
