@@ -1,5 +1,6 @@
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtWidgets import QDialog, QVBoxLayout, QWidget
+from PyQt6.QtGui import QCloseEvent
+from PyQt6.QtWidgets import QDialog, QMessageBox, QPushButton, QVBoxLayout, QWidget
 from ATGTrainer import ATGTrainer
 from Views.Training.TrainingFreshModelView import SelectHuggingFaceRepoView, TrainingFreshModelGPT2SizeView, TrainingFreshModelView
 from Views.Training.TrainingHyperparameterSetupView import TrainingHyperparameterSetupView
@@ -75,6 +76,8 @@ class TrainingModal(QDialog):
 
         self.__repoName = repoName
 
+        self.trainThread = None
+
     def doTraining(self, hp: dict):
         print(f'train with hps={hp}')
         self.trainThread = ATGTrainer(self, self.__repoName)
@@ -88,3 +91,21 @@ class TrainingModal(QDialog):
         self.trainThread.sampleTextGenerated.connect(self.trainingView.trainingInProgressView.onSamplesGenerated)
         self.trainThread.timePassed.connect(self.trainingView.trainingInProgressView.trainingInfo.onTimePassed)
         self.trainThread.start()
+
+    def closeEvent(self, event: QCloseEvent) -> None:
+        if self.trainThread is not None and self.trainThread.isRunning():
+            confirmCloseBox = QMessageBox(self)
+            confirmCloseBox.setText('Training has not yet finished.')
+            confirmCloseBox.setInformativeText('Are you sure you want to abort this training session?')
+            confirmCloseBox.setIcon(QMessageBox.Icon.Warning)
+
+            confirmCloseBox.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            confirmCloseBox.setDefaultButton(QMessageBox.StandardButton.No)
+
+            result = confirmCloseBox.exec()
+
+            if result == QMessageBox.StandardButton.Yes:
+                self.trainThread.terminate() # docs say it's unsafe but I'm not sure how else to kill aitextgen
+                event.accept()
+            elif result == QMessageBox.StandardButton.No:
+                event.ignore()

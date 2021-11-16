@@ -1,6 +1,7 @@
 from typing import List
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtWidgets import QDialog, QVBoxLayout, QWidget
+from PyQt6.QtGui import QCloseEvent
+from PyQt6.QtWidgets import QDialog, QMessageBox, QVBoxLayout, QWidget
 from ATGGenerator import ATGGenerator
 from Views.Generation.GeneratingHyperparameterSetupView import GeneratingCompleteView, GeneratingHyperparameterSetupView, GeneratingInProgressView, ProcessingInProgressView
 from Views.SwipingPageView import SwipingPageView
@@ -57,6 +58,8 @@ class GeneratingModal(QDialog):
         self.ly.addWidget(self.trainingView)
         self.__repoName = repoName
 
+        self.genThread = None
+
     def doGeneration(self, hyperparameters: dict):
         self.genThread = ATGGenerator(self, repoName=self.__repoName)
         self.genThread.processingStarted.connect(self.trainingView.onProcessingStarted)
@@ -67,3 +70,21 @@ class GeneratingModal(QDialog):
         self.genThread.setMaxLength(hyperparameters['maxLength'])
         self.genThread.setTemperature(hyperparameters['temperature'])
         self.genThread.start()
+
+    def closeEvent(self, event: QCloseEvent) -> None:
+        if self.genThread is not None and self.genThread.isRunning():
+            confirmCloseBox = QMessageBox(self)
+            confirmCloseBox.setText('Generation has not yet finished.')
+            confirmCloseBox.setInformativeText('Are you sure you want to abort this generation session?')
+            confirmCloseBox.setIcon(QMessageBox.Icon.Warning)
+
+            confirmCloseBox.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            confirmCloseBox.setDefaultButton(QMessageBox.StandardButton.No)
+
+            result = confirmCloseBox.exec()
+
+            if result == QMessageBox.StandardButton.Yes:
+                self.genThread.terminate() # docs say it's unsafe but I'm not sure how else to kill aitextgen
+                event.accept()
+            elif result == QMessageBox.StandardButton.No:
+                event.ignore()
