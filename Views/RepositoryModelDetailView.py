@@ -143,7 +143,11 @@ class RepositoryModelDetailStatsView(QWidget):
 
         # Set up tree for viewing samples
         self.outputTreeView.clear()
-        for sampleGroupName, sampleGroup in data.get('samples', {}).items():
+
+        keys = [int(key) for key in data.get('samples', {}).keys()]
+        for key in sorted(keys):
+            sampleGroupName = str(key)
+            sampleGroup = data.get('samples', {}).get(sampleGroupName)
             topLevelItem = QTreeWidgetItem([sampleGroupName])
             for text in sampleGroup:
                 subItem = QTreeWidgetItem(topLevelItem, [text.replace('\n', '')])

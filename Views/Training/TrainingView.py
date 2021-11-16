@@ -1,3 +1,4 @@
+from logging import error
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QCloseEvent
 from PyQt6.QtWidgets import QDialog, QMessageBox, QPushButton, QVBoxLayout, QWidget
@@ -6,6 +7,8 @@ from Views.Training.TrainingFreshModelView import SelectHuggingFaceRepoView, Tra
 from Views.Training.TrainingHyperparameterSetupView import TrainingHyperparameterSetupView
 from Views.Training.TrainingInProgressView import TrainingInProgressView
 from Views.SwipingPageView import SwipingPageView
+
+from traceback import format_exception
 
 class TrainingView(QWidget):
     trainingStarted = pyqtSignal(dict)
@@ -90,6 +93,7 @@ class TrainingModal(QDialog):
         self.trainThread.batchEnded.connect(self.trainingView.trainingInProgressView.onBatchEnded)
         self.trainThread.sampleTextGenerated.connect(self.trainingView.trainingInProgressView.onSamplesGenerated)
         self.trainThread.timePassed.connect(self.trainingView.trainingInProgressView.trainingInfo.onTimePassed)
+        self.trainThread.errorOccurred.connect(self.onErrorOccurred)
         self.trainThread.start()
 
     def closeEvent(self, event: QCloseEvent) -> None:
@@ -109,3 +113,18 @@ class TrainingModal(QDialog):
                 event.accept()
             elif result == QMessageBox.StandardButton.No:
                 event.ignore()
+
+
+    def onErrorOccurred(self, e: Exception):
+        tracebackString = ''.join(format_exception(etype=type(e), value=e, tb=e.__traceback__))
+
+        errorOccurredBox = QMessageBox(self)
+        errorOccurredBox.setText('An error occurred while training.')
+        errorOccurredBox.setDetailedText(tracebackString)
+
+        errorOccurredBox.setStandardButtons(QMessageBox.StandardButton.Ok)
+        errorOccurredBox.setDefaultButton(QMessageBox.StandardButton.Ok)
+        errorOccurredBox.setIcon(QMessageBox.Icon.Critical)
+
+        errorOccurredBox.exec()
+        self.close()

@@ -15,6 +15,7 @@ class ATGTrainer(QThread):
     batchEnded = pyqtSignal(int, int, float, float)
     sampleTextGenerated = pyqtSignal(int, list)
     modelSaved = pyqtSignal(int, int, str)
+    errorOccurred = pyqtSignal(Exception)
 
     timePassed = pyqtSignal(timedelta, float)
 
@@ -84,9 +85,21 @@ class ATGTrainer(QThread):
         self.__infoFilePath = join(repoFolderPath, 'info.json')
         
         if exists(self.__infoFilePath):
-            f = open(self.__infoFilePath)
-            try: jsonInfo = load(f)
-            except JSONDecodeError: jsonInfo = {}
+
+            try:
+                f = open(self.__infoFilePath)
+            except IOError as e:
+                self.errorOccurred.emit(e)
+                return
+
+            try:
+                jsonInfo = load(f)
+            except JSONDecodeError:
+                jsonInfo = {}
+            except IOError as e:
+                self.errorOccurred.emit(e)
+                return
+
             f.close()
 
 
@@ -98,7 +111,12 @@ class ATGTrainer(QThread):
             aitextgenArgs['model_folder'] = latestModelPath
 
         print(f'arguments to aitextgen constructor: {aitextgenArgs}')
-        self.ai = aitextgen(**aitextgenArgs)
+
+        try:
+            self.ai = aitextgen(**aitextgenArgs)
+        except Exception as e:
+            self.errorOccurred.emit(e)
+            return
 
         callbacks = {
             'on_train_start': self.onTrainingStarted,
@@ -129,11 +147,15 @@ class ATGTrainer(QThread):
         }
 
         print(f'arguments to train: {trainArgs}')
-        self.ai.train(**trainArgs)
+
+        try:
+            self.ai.train(**trainArgs)
+        except Exception as e:
+            self.errorOccurred.emit(e)
+            return
 
         # Write hp.json with hyperparameters
         self.saveModelMetadata()
-
 
     def onTrainingStarted(self):
         self.trainingStarted.emit()
@@ -176,22 +198,40 @@ class ATGTrainer(QThread):
             'steps': self.currentStep(),
             'samples': self.trainingSamples()
             }
-        with open(hpFilePath, 'w') as f: dump(hpJson, f)
+
+        try:
+            with open(hpFilePath, 'w') as f: dump(hpJson, f)
+        except IOError as e:
+            self.errorOccurred.emit(e)
+            return
 
         # Save step data
         stepFilePath = join(self.__fullModelPath, 'steps.csv')
-        with open(stepFilePath, 'w') as f: csv.writer(f).writerows(self.__dataRows)
+
+        try:
+            with open(stepFilePath, 'w') as f: csv.writer(f).writerows(self.__dataRows)
+        except IOError as e:
+            self.errorOccurred.emit(e)
+            return
 
         # Update info.json with new latest model
         newInfoJson = {'latest': self.__modelName}
-        if exists(self.__infoFilePath):
-            f = open(self.__infoFilePath, 'r')
-            try:
-                newInfoJson = load(f)
-            except JSONDecodeError:
-                pass
-            f.close()
+        try:
+            if exists(self.__infoFilePath):
+                f = open(self.__infoFilePath, 'r')
+                try:
+                    newInfoJson = load(f)
+                except JSONDecodeError:
+                    pass
+                f.close()
+        except IOError as e:
+            self.errorOccurred.emit(e)
+            return
 
-        f = open(self.__infoFilePath, 'w')
-        dump(newInfoJson, f)
-        f.close()
+        try:
+            f = open(self.__infoFilePath, 'w')
+            dump(newInfoJson, f)
+            f.close()
+        except IOError as e:
+            self.errorOccurred.emit(e)
+            return
