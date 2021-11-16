@@ -12,14 +12,13 @@ class RepositoryDatasetListView(QSplitter):
         super().__init__(parent)
 
         self.list = QTreeWidget(self, currentItemChanged=self.onCurrentItemChanged)
-        self.list.setHeaderLabels(['Title', 'Filename', 'Line-by-line', 'Imported'])
-        self.list.setColumnCount(4)
+        self.list.setHeaderLabels(['Title', 'Line-by-line', 'Imported'])
+        self.list.setColumnCount(3)
         self.list.setAlternatingRowColors(True)
         self.list.setRootIsDecorated(False)
 
         h = self.list.header()
         h.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        h.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
         h.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
         h.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
         h.setStretchLastSection(False)
@@ -48,12 +47,10 @@ class RepositoryDatasetListView(QSplitter):
 
             title = metadata.get('title', 'Unnamed Dataset')
             lineByLine = metadata.get('lineByLine', False)
-            filename = metadata.get('originalFilename', '---')
             importedTime = datetime.fromisoformat(metadata.get('imported', '1970-01-01T00:00:00'))
 
             item = QTreeWidgetItem(self.list, [
                 title,
-                filename,
                 str(lineByLine),
                 importedTime.strftime('%d/%m/%y, %I:%M %p')
                 ]

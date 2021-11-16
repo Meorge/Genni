@@ -8,6 +8,7 @@ from Views.RepositoryGeneratedDetailView import RepositoryGeneratedDetailView
 class RepositoryGeneratedListView(QSplitter):
     repositoryLoaded = pyqtSignal(str)
 
+    __currentRepo = None
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -25,7 +26,7 @@ class RepositoryGeneratedListView(QSplitter):
         for i in range(1, len(columns)): h.setSectionResizeMode(i, QHeaderView.ResizeMode.ResizeToContents)
         h.setStretchLastSection(False)
 
-        self.descStuff = RepositoryGeneratedDetailView()
+        self.descStuff = RepositoryGeneratedDetailView(self.repository(), parent=self)
 
         self.setOrientation(Qt.Orientation.Vertical)
         self.addWidget(self.list)
@@ -40,6 +41,8 @@ class RepositoryGeneratedListView(QSplitter):
         self.__currentRepo = repoName
         self.populateList()
         self.repositoryLoaded.emit(repoName)
+
+        self.descStuff.setRepository(repoName)
 
     def populateList(self):
         self.list.clear()

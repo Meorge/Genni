@@ -3,14 +3,16 @@ from difflib import SequenceMatcher
 from typing import List, Union
 from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtGui import QColor, QColorConstants, QIcon
-from PyQt6.QtWidgets import QFrame, QGridLayout, QLabel, QListWidget, QListWidgetItem, QSizePolicy, QSplitter, QTabWidget, QTextEdit, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QFrame, QGridLayout, QHeaderView, QLabel, QListWidget, QListWidgetItem, QSizePolicy, QSplitter, QTabWidget, QTextEdit, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget
+from ModelRepo import getDatasetMetadata
 from Views.Colors import COLOR_BLUE, COLOR_PURPLE, COLOR_RED, COLOR_YELLOW
 
 from Views.LabeledValueView import LabeledValueView
 
 class RepositoryGeneratedDetailView(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, repoName, parent=None):
         super().__init__(parent)
+        self.__repoName = repoName
 
         # Title label
         self.titleLabel = QLabel('Generated on 8 November 2021 at 9:41 AM', parent=self)
@@ -25,7 +27,8 @@ class RepositoryGeneratedDetailView(QWidget):
         self.sampleList = QListWidget(self, currentItemChanged=self.onCurrentItemChanged)
         
         # Right-hand detailed sample
-        self.sampleDetail = QTextEdit(self, readOnly=True)
+        # self.sampleDetail = QTextEdit(self, readOnly=True)
+        self.sampleDetail = RepositoryGeneratedDetailVertSplitterView(self.__repoName, parent=self)
 
         # Splitter
         self.splitter = QSplitter(self)
@@ -43,16 +46,21 @@ class RepositoryGeneratedDetailView(QWidget):
         self.ly.addWidget(self.titleLabel, alignment=Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeading)
         self.ly.addWidget(self.tabWidget)
 
+    def setRepository(self, repoName: str):
+        self.__repoName = repoName
+        self.sampleDetail.setRepository(repoName)
+
     def onCurrentItemChanged(self, current: QListWidgetItem, prev: QListWidgetItem):
-        self.sampleDetail.setText('')
+        self.sampleDetail.setSample({})
         if current is None: return
 
         currentSelectedSample = current.data(Qt.ItemDataRole.UserRole)
 
         if isinstance(currentSelectedSample, str):
-            self.sampleDetail.setText(currentSelectedSample)
+            self.sampleDetail.setSample({'text': currentSelectedSample})
+
         elif isinstance(currentSelectedSample, dict):
-            self.sampleDetail.setText(currentSelectedSample.get('text', ''))
+            self.sampleDetail.setSample(currentSelectedSample)
 
 
     def setData(self, data: dict):
@@ -60,8 +68,7 @@ class RepositoryGeneratedDetailView(QWidget):
         self.titleLabel.setText(f'''Generated on {genDate.strftime('%d %B %Y at %I:%M %p')}''')
         self.setSamples(data.get('texts', []))
         self.hpView.setData(data)
-
-        # checkForOvertraining('guybot2', data.get('texts', []), data['meta']['prompt'])
+        self.sampleDetail.setPrompt(data.get('meta', {}).get('prompt', ''))
 
 
     def setSamples(self, samples: List[Union[str, dict]]):
@@ -91,6 +98,70 @@ class RepositoryGeneratedDetailView(QWidget):
                         item.setIcon(QIcon('Icons/Critical.svg'))
                     elif ratio > 0.5:
                         item.setIcon(QIcon('Icons/Warning.svg'))
+
+
+class RepositoryGeneratedDetailVertSplitterView(QSplitter):
+    def __init__(self, repoName, parent=None):
+        super().__init__(parent)
+        self.__repoName = repoName
+
+        self.setOrientation(Qt.Orientation.Vertical)
+
+        # Create text box on top
+        self.rawTextEdit = QTextEdit(self, readOnly=True)
+
+        # Create tree view on bottom
+        self.originalityTreeView = QTreeWidget(self)
+        cols = ['%', 'Match', 'Dataset']
+        self.originalityTreeView.setHeaderLabels(cols)
+        self.originalityTreeView.setColumnCount(len(cols))
+        self.originalityTreeView.setAlternatingRowColors(True)
+        self.originalityTreeView.setRootIsDecorated(False)
+        h = self.originalityTreeView.header()
+        h.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        h.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        h.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        h.setStretchLastSection(False)
+        
+
+        self.addWidget(self.rawTextEdit)
+        self.addWidget(self.originalityTreeView)
+
+        self.__sample = {}
+        self.__prompt = ''
+
+    def setRepository(self, repoName: str):
+        self.__repoName = repoName
+
+    def setPrompt(self, prompt: str):
+        self.__prompt = prompt
+
+    def setSample(self, sample: dict):
+        self.__sample = sample
+        self.rawTextEdit.setText(sample.get('text', ''))
+
+        self.originalityTreeView.clear()
+        for match in sorted(sample.get('datasetMatches', []), key=lambda a: a.get('ratio', 0), reverse=True):
+            match: dict
+            matchItem = QTreeWidgetItem(self.originalityTreeView)
+
+            # Get the matched text
+            i = match.get('genTextMatchIndex', 0) + len(self.__prompt)
+            l = match.get('size', 0)
+            matchText = sample.get('text', '')[i:i+l].strip()
+
+            # Get the name of the dataset
+            datasetId = match.get('dataset')
+            if datasetId is None:
+                datasetName = ''
+            else:
+                datasetMeta = getDatasetMetadata(self.__repoName, datasetId)
+                datasetName = datasetMeta.get('title', '')
+
+            matchItem.setText(0, f'''{match.get('ratio', 0) * 100:.01f}%''')
+            matchItem.setText(1, matchText)
+            matchItem.setText(2, datasetName)
+            
 
 
 class RepositoryGeneratedDetailHyperparamsView(QWidget):
