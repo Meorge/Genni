@@ -49,6 +49,7 @@ class GeneratingView(QWidget):
 class GeneratingModal(QDialog):
     def __init__(self, parent=None, repoName=None):
         super().__init__(parent)
+        print(f'going to generate for {repoName}')
         self.trainingView = GeneratingView(self)
         self.trainingView.generationStarted.connect(self.doGeneration)
         self.trainingView.accept.connect(self.accept)

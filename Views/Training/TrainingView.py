@@ -69,6 +69,7 @@ class TrainingView(QWidget):
 class TrainingModal(QDialog):
     def __init__(self, parent=None, repoName=None):
         super().__init__(parent)
+        print(f'going to train for {repoName}')
         self.trainingView = TrainingView(self, repoName=repoName)
         self.trainingView.trainingStarted.connect(self.doTraining)
         self.trainingView.trainingInProgressView.doneButton.clicked.connect(self.accept)

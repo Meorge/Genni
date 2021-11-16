@@ -20,7 +20,7 @@ class RepositoryModelDetailView(QWidget):
         self.titleLabel.setFont(self.titleFont)
         
         # Training date
-        self.dateLabel = QLabel('8 November 2021 at 9:41 AM')
+        self.dateLabel = QLabel('')
 
         self.titleLabel.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.dateLabel.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
@@ -93,12 +93,12 @@ class RepositoryModelDetailStatsView(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.durationLabel = LabeledValueView('Duration', '01:02:03', COLOR_GREEN)
-        self.totalStepsLabel = LabeledValueView('Total Steps', '300', COLOR_PURPLE)
+        self.durationLabel = LabeledValueView('Duration', '--:--:--', COLOR_GREEN)
+        self.totalStepsLabel = LabeledValueView('Total Steps', '---', COLOR_PURPLE)
 
         self.learningRateLabel = LabeledValueView('Learning Rate', '---', COLOR_RED)
 
-        self.avgLossLabel = LabeledValueView('Avg. Loss', '4.56', COLOR_YELLOW)
+        self.avgLossLabel = LabeledValueView('Avg. Loss', '---', COLOR_YELLOW)
 
         self.outputTreeView = QTreeWidget(self, currentItemChanged=self.onSelectedOutputChanged)
         self.outputTreeView.setHeaderHidden(True)

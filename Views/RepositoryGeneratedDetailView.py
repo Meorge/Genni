@@ -15,7 +15,7 @@ class RepositoryGeneratedDetailView(QWidget):
         self.__repoName = repoName
 
         # Title label
-        self.titleLabel = QLabel('Generated on 8 November 2021 at 9:41 AM', parent=self)
+        self.titleLabel = QLabel('', parent=self)
         self.titleFont = self.titleLabel.font()
         self.titleFont.setBold(True)
         self.titleFont.setPointSizeF(self.titleFont.pointSizeF() * 1.5)
@@ -168,10 +168,10 @@ class RepositoryGeneratedDetailHyperparamsView(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.minLengthLabel = LabeledValueView('Min Length', '10', COLOR_BLUE)
-        self.maxLengthLabel = LabeledValueView('Max Length', '200', COLOR_BLUE)
+        self.minLengthLabel = LabeledValueView('Min Length', '---', COLOR_BLUE)
+        self.maxLengthLabel = LabeledValueView('Max Length', '---', COLOR_BLUE)
 
-        self.temperatureLabel = LabeledValueView('Temperature', '0.7', COLOR_RED)
+        self.temperatureLabel = LabeledValueView('Temperature', '---', COLOR_RED)
         self.seedLabel = LabeledValueView('Seed', '---', COLOR_YELLOW)
 
         self.topPLabel = LabeledValueView('Top P', '---', COLOR_PURPLE)

@@ -16,7 +16,7 @@ class RepositoryDatasetDetailView(QWidget):
         self.titleLabel.setFont(self.titleFont)
         
         # Training date
-        self.dateLabel = QLabel('Imported 8 November 2021 at 9:41 AM')
+        self.dateLabel = QLabel('')
 
         self.titleLabel.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.dateLabel.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)

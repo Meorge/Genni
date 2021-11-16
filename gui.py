@@ -1,6 +1,6 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction, QIcon
-from PyQt6.QtWidgets import QMainWindow, QApplication, QStackedWidget, QTabBar, QTabWidget, QToolBar, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QListWidget, QMainWindow, QApplication, QSplitter, QStackedWidget, QTabBar, QTabWidget, QToolBar, QTreeWidget, QVBoxLayout, QWidget
 import sys
 from ATGGenerator import ATGGenerator
 
@@ -9,10 +9,11 @@ from Views.Generation.GeneratingView import GeneratingModal
 from Views.ImportDatasetView import ImportDatasetModal
 from Views.RepositoryDatasetListView import RepositoryDatasetListView
 from Views.RepositoryGeneratedListView import RepositoryGeneratedListView
+from Views.RepositoryListView import RepositoryListView
 from Views.RepositoryModelHistoryView import RepositoryModelHistoryView
 from Views.Training.TrainingView import TrainingModal
 
-class MainWindow(QMainWindow):
+class RepositoryWindow(QMainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
 
@@ -61,9 +62,13 @@ class MainWindow(QMainWindow):
         self.ly.addWidget(self.stack)
         self.ly.setContentsMargins(0,0,0,0)
 
-        self.setCentralWidget(self.w)
+        self.repoListWidget = RepositoryListView(self)
+        self.repoListWidget.currentRepositoryChanged.connect(self.loadRepository)
+        self.sidebarSplitter = QSplitter(self)
+        self.sidebarSplitter.addWidget(self.repoListWidget)
+        self.sidebarSplitter.addWidget(self.w)
 
-        self.loadRepository('./my_model')
+        self.setCentralWidget(self.sidebarSplitter)
 
     def loadRepository(self, repoName: str):
         self.setRepositoryName(repoName)
@@ -99,6 +104,6 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication([])
-    window = MainWindow()
+    window = RepositoryWindow()
     window.show()
     sys.exit(app.exec())

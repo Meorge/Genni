@@ -5,7 +5,7 @@ from typing import List
 
 from os.path import join, isdir, exists
 from os import listdir
-from json import load
+from json import dump, load
 from datetime import datetime, timedelta
 from csv import reader
 
@@ -25,6 +25,7 @@ def getRepoMetadata(repoName: str) -> dict:
         with open(infoFilePath) as f:
             try:
                 repoMetadata = load(f)
+                repoMetadata['path'] = repoName
             except JSONDecodeError:
                 repoMetadata = {}
 
@@ -166,3 +167,28 @@ def processGeneratedSamples(repoName: str, genTexts: List[str], prompt: str) -> 
             output[genTextIndex]['datasetMatches'].append(outputItem)
 
     return output
+
+def getAllRepos():
+    # check if the knownRepos.json file exists
+    knownReposPath = join('knownRepos.json')
+    if not exists(knownReposPath):
+        print('Need to create knownRepos.json')
+        with open(knownReposPath, 'w') as f:
+            dump([], f)
+            return []
+    
+    # It does exist, so let's read from it
+    knownReposRaw = []
+    try:
+        with open(knownReposPath) as f:
+            knownReposRaw = load(f)
+    except IOError as e:
+        print(e.strerror())
+
+    # knownReposRaw is just a list of paths to repo folders
+    # We need to check each repo and get its metadata
+    knownRepos = []
+    for repoPath in knownReposRaw:
+        knownRepos.append(getRepoMetadata(repoPath))
+
+    return knownRepos
