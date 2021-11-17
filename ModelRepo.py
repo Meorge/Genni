@@ -230,3 +230,28 @@ def renameRepo(repoPath: str, title: str):
             dump(existingMeta, f)
     except IOError as e:
         print(f'IO error while trying to rename repo: {e}')
+
+
+def removeRepo(repoPath: str):
+    initKnownRepos()
+
+    knownReposRaw = []
+    try:
+        with open(knownReposPath) as f:
+            knownReposRaw = load(f)
+    except IOError as e:
+        print(e.strerror())
+    except JSONDecodeError as e:
+        print(e)
+
+    try:
+        knownReposRaw.remove(repoPath)
+    except ValueError as e:
+        print(f'that repoPath wasn\'t saved in the first place')
+        return
+
+    try:
+        with open(knownReposPath, 'w') as f:
+            dump(knownReposRaw, f)
+    except IOError as e:
+        print(f'Error writing knownRepos.json when attempting to remove a repo: {e}')

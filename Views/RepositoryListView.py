@@ -1,8 +1,8 @@
 from PyQt6.QtCore import QPoint, Qt, pyqtSignal
 from PyQt6.QtGui import QAction, QIcon
-from PyQt6.QtWidgets import QFileDialog, QInputDialog, QMenu, QTreeWidget, QTreeWidgetItem
+from PyQt6.QtWidgets import QFileDialog, QInputDialog, QMenu, QMessageBox, QTreeWidget, QTreeWidgetItem
 
-from ModelRepo import addKnownRepo, getKnownRepos, renameRepo
+from ModelRepo import addKnownRepo, getKnownRepos, removeRepo, renameRepo
 
 class RepositoryListView(QTreeWidget):
     currentRepositoryChanged = pyqtSignal(str)
@@ -24,7 +24,7 @@ class RepositoryListView(QTreeWidget):
         
         # Context menu for a specific repository
         self.renameRepoAction = QAction('Rename...', self, triggered=self.renameRepository)
-        self.removeRepoAction = QAction('Remove...', self)
+        self.removeRepoAction = QAction('Remove...', self, triggered=self.removeRepository)
         self.specificRepoContextMenu = QMenu(self)
         self.specificRepoContextMenu.addAction(self.renameRepoAction)
         self.specificRepoContextMenu.addAction(self.removeRepoAction)
@@ -69,6 +69,23 @@ class RepositoryListView(QTreeWidget):
 
         if ok and newName != '':
             renameRepo(repoMeta['path'], newName)
+            self.populateList()
+
+    def removeRepository(self):
+        repoMeta = self.currentItem().data(0, Qt.ItemDataRole.UserRole)
+
+        confirmRemoveBox = QMessageBox(self)
+        confirmRemoveBox.setText(f'''Are you sure you want to remove the repository \"{repoMeta.get('title', 'Untitled Repository')}\" from your list?''')
+        confirmRemoveBox.setInformativeText('This will not delete the repository from your computer.')
+        confirmRemoveBox.setIcon(QMessageBox.Icon.Warning)
+
+        confirmRemoveBox.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        confirmRemoveBox.setDefaultButton(QMessageBox.StandardButton.No)
+
+        result = confirmRemoveBox.exec()
+
+        if result == QMessageBox.StandardButton.Yes:
+            removeRepo(repoMeta['path'])
             self.populateList()
 
     def onItemDoubleClicked(self, current: QTreeWidgetItem, column: int):
