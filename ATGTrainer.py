@@ -85,23 +85,16 @@ class ATGTrainer(QThread):
         self.__infoFilePath = join(repoFolderPath, 'info.json')
         
         if exists(self.__infoFilePath):
-
             try:
                 f = open(self.__infoFilePath)
-            except IOError as e:
-                self.errorOccurred.emit(e)
-                return
-
-            try:
                 jsonInfo = load(f)
-            except JSONDecodeError:
-                jsonInfo = {}
+                f.close()
+            except JSONDecodeError as e:
+                self.errorOccurred.emit(e)
+                return
             except IOError as e:
                 self.errorOccurred.emit(e)
                 return
-
-            f.close()
-
 
         self.__latestModel = jsonInfo.get('latest', None)
 
@@ -216,22 +209,22 @@ class ATGTrainer(QThread):
 
         # Update info.json with new latest model
         newInfoJson = {'latest': self.__modelName}
-        try:
-            if exists(self.__infoFilePath):
+        if exists(self.__infoFilePath):
+            try:            
                 f = open(self.__infoFilePath, 'r')
                 try:
                     newInfoJson = load(f)
                 except JSONDecodeError:
                     pass
                 f.close()
-        except IOError as e:
-            self.errorOccurred.emit(e)
-            return
 
-        try:
-            f = open(self.__infoFilePath, 'w')
-            dump(newInfoJson, f)
-            f.close()
-        except IOError as e:
-            self.errorOccurred.emit(e)
-            return
+                f = open(self.__infoFilePath, 'w')
+                dump(newInfoJson, f)
+                f.close()
+
+            except IOError as e:
+                self.errorOccurred.emit(e)
+                return
+            except JSONDecodeError as e:
+                self.errorOccurred.emit(e)
+                return

@@ -26,7 +26,7 @@ class RepositoryWindow(QMainWindow):
         self.setUnifiedTitleAndToolBarOnMac(True)
 
         self.trainAction = QAction(QIcon('./Icons/Train.svg'), 'Train', self, triggered=self.openTrainingModal)
-        self.genAction = QAction(QIcon('./Icons/Generate.svg'), 'Generate', self, triggered=self.openGenModal)
+        self.genAction = QAction(QIcon('./Icons/Generate.svg'), 'Generate', self, triggered=self.openGenModal, enabled=False)
 
         self.addDatasetAction = QAction(QIcon('./Icons/Add Dataset.svg'), 'Add Dataset', self, triggered=self.openAddDatasetModal)
         
@@ -74,6 +74,8 @@ class RepositoryWindow(QMainWindow):
         self.setRepositoryName(repoName)
         repoData: dict = getRepoMetadata(repoName)
         self.setWindowTitle(repoData.get('title', 'Untitled Repository'))
+
+        self.genAction.setEnabled(repoData.get('latest') is not None)
         self.modelHistoryView.loadRepository(repoName)
         self.datasetsView.loadRepository(repoName)
         self.genTextsView.loadRepository(repoName)
