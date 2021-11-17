@@ -11,6 +11,8 @@ from csv import reader
 
 __datasetTexts = {}
 
+knownReposPath = join('knownRepos.json')
+
 def getDurationString(passed: timedelta):
     hours, rem = divmod(passed.seconds, 3600)
     minutes, seconds = divmod(rem, 60)
@@ -25,10 +27,10 @@ def getRepoMetadata(repoName: str) -> dict:
         with open(infoFilePath) as f:
             try:
                 repoMetadata = load(f)
-                repoMetadata['path'] = repoName
             except JSONDecodeError:
                 repoMetadata = {}
 
+    repoMetadata['path'] = repoName
     return repoMetadata
 
 def getModelsInRepository(repoName: str) -> List[dict]:
@@ -54,8 +56,8 @@ def getModelsInRepository(repoName: str) -> List[dict]:
     return validModels
 
 def getDatasetsInRepository(repoName: str) -> List[dict]:
-    allDatasetsFolder = join(repoName, 'datasets')
 
+    allDatasetsFolder = join(repoName, 'datasets')
     if not exists(allDatasetsFolder): return []
 
     allPotentialDatasets = listdir(allDatasetsFolder)
@@ -168,14 +170,15 @@ def processGeneratedSamples(repoName: str, genTexts: List[str], prompt: str) -> 
 
     return output
 
-def getAllRepos():
+def initKnownRepos():
     # check if the knownRepos.json file exists
-    knownReposPath = join('knownRepos.json')
     if not exists(knownReposPath):
         print('Need to create knownRepos.json')
         with open(knownReposPath, 'w') as f:
             dump([], f)
-            return []
+
+def getKnownRepos():
+    initKnownRepos()
     
     # It does exist, so let's read from it
     knownReposRaw = []
@@ -184,6 +187,8 @@ def getAllRepos():
             knownReposRaw = load(f)
     except IOError as e:
         print(e.strerror())
+    except JSONDecodeError as e:
+        print(e)
 
     # knownReposRaw is just a list of paths to repo folders
     # We need to check each repo and get its metadata
@@ -192,3 +197,25 @@ def getAllRepos():
         knownRepos.append(getRepoMetadata(repoPath))
 
     return knownRepos
+
+
+def addKnownRepo(repoPath: str):
+    initKnownRepos()
+
+    knownReposRaw = []
+    try:
+        with open(knownReposPath) as f:
+            knownReposRaw = load(f)
+    except IOError as e:
+        print(f'IO error: {e}')
+    except JSONDecodeError as e:
+        print(f'JSON decoding error: {e}')
+
+    knownReposRaw.append(repoPath)
+
+    try:
+        with open(knownReposPath, 'w') as f:
+            dump(knownReposRaw, f)
+    except IOError as e:
+        print(f'IO error: {e}')
+    
