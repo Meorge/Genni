@@ -19,8 +19,8 @@ def getDurationString(passed: timedelta):
     passedStr = f'{hours:02d}:{minutes:02d}:{seconds:02d}'
     return passedStr
 
-def getRepoMetadata(repoName: str) -> dict:
-    infoFilePath = join(repoName, 'info.json')
+def getRepoMetadata(repoPath: str) -> dict:
+    infoFilePath = join(repoPath, 'info.json')
 
     repoMetadata: dict = {}
     if exists(infoFilePath):
@@ -30,11 +30,11 @@ def getRepoMetadata(repoName: str) -> dict:
             except JSONDecodeError:
                 repoMetadata = {}
 
-    repoMetadata['path'] = repoName
+    repoMetadata['path'] = repoPath
     return repoMetadata
 
-def getModelsInRepository(repoName: str) -> List[dict]:
-    allModelsFolder = join(repoName, 'models')
+def getModelsInRepository(repoPath: str) -> List[dict]:
+    allModelsFolder = join(repoPath, 'models')
     
     if not exists(allModelsFolder): return []
 
@@ -55,9 +55,9 @@ def getModelsInRepository(repoName: str) -> List[dict]:
     validModels.sort(key=lambda i: datetime.fromisoformat(i.get('datetime', '1970-01-01T00:00:00')), reverse=True)
     return validModels
 
-def getDatasetsInRepository(repoName: str) -> List[dict]:
+def getDatasetsInRepository(repoPath: str) -> List[dict]:
 
-    allDatasetsFolder = join(repoName, 'datasets')
+    allDatasetsFolder = join(repoPath, 'datasets')
     if not exists(allDatasetsFolder): return []
 
     allPotentialDatasets = listdir(allDatasetsFolder)
@@ -78,8 +78,8 @@ def getDatasetsInRepository(repoName: str) -> List[dict]:
     validDatasets.sort(key=lambda i: i['meta']['imported'], reverse=True)
     return validDatasets
 
-def getGeneratedTextsInRepository(repoName: str) -> List[dict]:
-    allGensFolder = join(repoName, 'generated')
+def getGeneratedTextsInRepository(repoPath: str) -> List[dict]:
+    allGensFolder = join(repoPath, 'generated')
 
     if not exists(allGensFolder): return []
 
@@ -101,19 +101,19 @@ def getGeneratedTextsInRepository(repoName: str) -> List[dict]:
     validGens.sort(key=lambda i: i['meta']['datetime'], reverse=True)
     return validGens
     
-def getDatasetMetadata(repoName: str, datasetName: str) -> dict:
-    allDatasets = getDatasetsInRepository(repoName)
+def getDatasetMetadata(repoPath: str, datasetName: str) -> dict:
+    allDatasets = getDatasetsInRepository(repoPath)
     try:
         thisDataset = [i for i in allDatasets if i['pathName'] == datasetName][0]
         return thisDataset.get('meta', {})
     except IndexError:
         return {}
 
-def getDatasetText(repoName: str, datasetName: str) -> str:
-    name = f'{repoName}/{datasetName}'
+def getDatasetText(repoPath: str, datasetName: str) -> str:
+    name = f'{repoPath}/{datasetName}'
     # if name in __datasetTexts: return __datasetTexts[name]
 
-    targetDataset = join(repoName, 'datasets', datasetName, 'dataset')
+    targetDataset = join(repoPath, 'datasets', datasetName, 'dataset')
     text = None
     if exists(targetDataset):
         with open(targetDataset) as f:
@@ -123,8 +123,8 @@ def getDatasetText(repoName: str, datasetName: str) -> str:
     # __datasetTexts[name] = text
     return text
 
-def getModelStepData(repoName: str, modelName: str):
-    modelLossDataPath = join(repoName, 'models', modelName, 'steps.csv')
+def getModelStepData(repoPath: str, modelName: str):
+    modelLossDataPath = join(repoPath, 'models', modelName, 'steps.csv')
 
     if not exists(modelLossDataPath): return None
 
@@ -135,7 +135,7 @@ def getModelStepData(repoName: str, modelName: str):
             rows.append((float(row[0]), int(row[1]), float(row[2]), float(row[3])))
     return rows
 
-def processGeneratedSamples(repoName: str, genTexts: List[str], prompt: str) -> List[dict]:
+def processGeneratedSamples(repoPath: str, genTexts: List[str], prompt: str) -> List[dict]:
     """
     We want to check each of the generated samples against the training data
     to see if there's overtraining going on.
@@ -143,8 +143,8 @@ def processGeneratedSamples(repoName: str, genTexts: List[str], prompt: str) -> 
 
     output = [{ 'text': text, 'datasetMatches': []} for text in genTexts]
 
-    for datasetMeta in getDatasetsInRepository(repoName):
-        datasetPath = join(repoName, 'datasets', datasetMeta['pathName'], 'dataset')
+    for datasetMeta in getDatasetsInRepository(repoPath):
+        datasetPath = join(repoPath, 'datasets', datasetMeta['pathName'], 'dataset')
         with open(datasetPath) as f: datasetText = f.read()
         seqMatcher = SequenceMatcher(
             isjunk=lambda x: x == prompt, 
@@ -219,3 +219,14 @@ def addKnownRepo(repoPath: str):
     except IOError as e:
         print(f'IO error: {e}')
     
+def renameRepo(repoPath: str, title: str):
+    infoFilePath = join(repoPath, 'info.json')
+    existingMeta = getRepoMetadata(repoPath)
+
+    existingMeta['title'] = title
+
+    try:
+        with open(infoFilePath, 'w') as f:
+            dump(existingMeta, f)
+    except IOError as e:
+        print(f'IO error while trying to rename repo: {e}')

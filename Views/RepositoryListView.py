@@ -1,8 +1,8 @@
 from PyQt6.QtCore import QPoint, Qt, pyqtSignal
 from PyQt6.QtGui import QAction, QIcon
-from PyQt6.QtWidgets import QFileDialog, QMenu, QTreeWidget, QTreeWidgetItem
+from PyQt6.QtWidgets import QFileDialog, QInputDialog, QMenu, QTreeWidget, QTreeWidgetItem
 
-from ModelRepo import addKnownRepo, getKnownRepos
+from ModelRepo import addKnownRepo, getKnownRepos, renameRepo
 
 class RepositoryListView(QTreeWidget):
     currentRepositoryChanged = pyqtSignal(str)
@@ -15,11 +15,20 @@ class RepositoryListView(QTreeWidget):
         self.populateList()
 
         # set up actions
-        self.refreshAction = QAction('Refresh Repositories', self, triggered=self.populateList)
-        self.addRepoAction = QAction(QIcon('./Icons/Add.svg'), 'Add Repository...', self, triggered=self.addRepository)
-        self.contextMenu = QMenu(self)
-        self.contextMenu.addAction(self.refreshAction)
-        self.contextMenu.addAction(self.addRepoAction)
+        self.refreshAction = QAction('Refresh', self, triggered=self.populateList)
+        self.addRepoAction = QAction(QIcon('./Icons/Add.svg'), 'Add...', self, triggered=self.addRepository)
+        self.globalContextMenu = QMenu(self)
+        self.globalContextMenu.addAction(self.refreshAction)
+        self.globalContextMenu.addAction(self.addRepoAction)
+
+        
+        # Context menu for a specific repository
+        self.renameRepoAction = QAction('Rename...', self, triggered=self.renameRepository)
+        self.removeRepoAction = QAction('Remove...', self)
+        self.specificRepoContextMenu = QMenu(self)
+        self.specificRepoContextMenu.addAction(self.renameRepoAction)
+        self.specificRepoContextMenu.addAction(self.removeRepoAction)
+
 
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.onContextMenuRequested)
@@ -45,14 +54,22 @@ class RepositoryListView(QTreeWidget):
 
         if item is None:
             # Display menu with "Add Repository" and "Refresh" and stuff
-            self.contextMenu.exec(self.mapToGlobal(point))
+            self.globalContextMenu.exec(self.mapToGlobal(point))
         else:
             # TODO: Display menu with "Remove Repository"
-            pass
+            self.specificRepoContextMenu.exec(self.mapToGlobal(point))
             
+    def renameRepository(self):
+        repoMeta = self.currentItem().data(0, Qt.ItemDataRole.UserRole)
+        newName, ok = QInputDialog.getText(self,
+            'Rename Repository',
+            'New name:',
+            text=repoMeta.get('title', 'Untitled Repository')
+            )
 
-        
-
+        if ok and newName != '':
+            renameRepo(repoMeta['path'], newName)
+            self.populateList()
 
     def onItemDoubleClicked(self, current: QTreeWidgetItem, column: int):
         if current == None: return
