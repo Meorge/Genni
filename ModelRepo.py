@@ -225,6 +225,8 @@ def renameRepo(repoPath: str, title: str):
 
     existingMeta['title'] = title
 
+    del existingMeta['path']
+
     try:
         with open(infoFilePath, 'w') as f:
             dump(existingMeta, f)
