@@ -6,6 +6,8 @@ from datetime import datetime, timedelta
 from os import environ
 from json import dump, load
 
+from PyQtNotifications.QMacNotification import QMacNotification
+
 environ["TOKENIZERS_PARALLELISM"] = "false"
 environ["OMP_NUM_THREADS"] = "1"
         
@@ -26,6 +28,8 @@ class ATGTrainer(QThread):
     __samples = {}
 
     __dataRows = []
+
+    __avgLoss = None
 
     def __init__(self, parent=None, repoName=None):
         super().__init__(parent)
@@ -155,11 +159,16 @@ class ATGTrainer(QThread):
 
     def onTrainingEnded(self):
         # print("Training has ended!")
+        QMacNotification(
+            title=f'Training completed',
+            body=f'Average loss {self.__avgLoss}'
+        ).exec()
         self.trainingEnded.emit()
 
     def onBatchEnded(self, steps, total, loss, avg_loss):
         # print(f"Step {steps}/{total} - loss {loss} and avg {avg_loss}")
         self.__currentStep = steps
+        self.__avgLoss = avg_loss
 
         currentTime = datetime.now()
         elapsed = currentTime - self.startTime
@@ -169,11 +178,20 @@ class ATGTrainer(QThread):
         self.batchEnded.emit(steps, total, loss, avg_loss)
 
     def onSampleTextGenerated(self, texts):
+        QMacNotification(
+            title=f'{self.currentStep()} steps reached',
+            body=f'Sample texts have been generated - average loss {self.__avgLoss}'
+        ).exec()
+
         self.__samples[str(self.currentStep())] = texts
         self.sampleTextGenerated.emit(self.currentStep(), texts)
 
     def onModelSaved(self, steps, total, dir):
-        # print(f"Step {steps}/{total} - save to {dir}")
+        QMacNotification(
+            title=f'{steps} steps reached',
+            body=f'Model has been saved - average loss {self.__avgLoss}'
+        ).exec()
+
         self.saveModelMetadata()
         self.modelSaved.emit(steps, total, dir)
 

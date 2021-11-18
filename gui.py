@@ -1,8 +1,7 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction, QIcon
-from PyQt6.QtWidgets import QListWidget, QMainWindow, QApplication, QSplitter, QStackedWidget, QTabBar, QTabWidget, QToolBar, QTreeWidget, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QMainWindow, QApplication, QSplitter, QStackedWidget, QTabBar, QToolBar, QVBoxLayout, QWidget
 import sys
-from ATGGenerator import ATGGenerator
 
 from ModelRepo import getRepoMetadata
 from Views.Generation.GeneratingView import GeneratingModal
@@ -29,7 +28,7 @@ class RepositoryWindow(QMainWindow):
         self.genAction = QAction(QIcon('./Icons/Generate.svg'), 'Generate', self, triggered=self.openGenModal, enabled=False)
 
         self.addDatasetAction = QAction(QIcon('./Icons/Add Dataset.svg'), 'Add Dataset', self, triggered=self.openAddDatasetModal, enabled=False)
-        
+
         self.tb.addAction(self.trainAction)
         self.tb.addAction(self.genAction)
         self.tb.addSeparator()
