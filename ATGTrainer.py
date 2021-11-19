@@ -234,6 +234,7 @@ class ATGTrainer(QThread):
                 f = open(self.__infoFilePath, 'r', encoding='utf-8')
                 try:
                     newInfoJson = load(f)
+                    newInfoJson['latest'] = self.__modelName
                 except JSONDecodeError:
                     pass
                 f.close()
