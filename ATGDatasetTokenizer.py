@@ -52,4 +52,4 @@ class ATGDatasetTokenizer(QThread):
         # Make meta json
         metaJson = {'title': self.title(), 'comment': self.comment(), 'lineByLine': self.lineByLine(), 'originalFilename': fileName, 'imported': datetime.now().isoformat(timespec='seconds')}
         metaJsonFilePath = join(thisDatasetFolderPath, 'meta.json')
-        with open(metaJsonFilePath, 'w') as f: dump(metaJson, f)
+        with open(metaJsonFilePath, 'w', encoding='utf-8') as f: dump(metaJson, f)

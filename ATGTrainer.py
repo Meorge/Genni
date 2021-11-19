@@ -91,7 +91,7 @@ class ATGTrainer(QThread):
         
         if exists(self.__infoFilePath):
             try:
-                f = open(self.__infoFilePath)
+                f = open(self.__infoFilePath, encoding='utf-8')
                 jsonInfo = load(f)
                 f.close()
             except JSONDecodeError as e:
@@ -212,7 +212,7 @@ class ATGTrainer(QThread):
             }
 
         try:
-            with open(hpFilePath, 'w') as f: dump(hpJson, f)
+            with open(hpFilePath, 'w', encoding='utf-8') as f: dump(hpJson, f)
         except IOError as e:
             self.errorOccurred.emit(e)
             return
@@ -221,7 +221,8 @@ class ATGTrainer(QThread):
         stepFilePath = join(self.__fullModelPath, 'steps.csv')
 
         try:
-            with open(stepFilePath, 'w') as f: csv.writer(f).writerows(self.__dataRows)
+            with open(stepFilePath, 'w', encoding='utf-8', newline='') as f:
+                csv.writer(f).writerows(self.__dataRows)
         except IOError as e:
             self.errorOccurred.emit(e)
             return
@@ -230,14 +231,14 @@ class ATGTrainer(QThread):
         newInfoJson = {'latest': self.__modelName}
         if exists(self.__infoFilePath):
             try:            
-                f = open(self.__infoFilePath, 'r')
+                f = open(self.__infoFilePath, 'r', encoding='utf-8')
                 try:
                     newInfoJson = load(f)
                 except JSONDecodeError:
                     pass
                 f.close()
 
-                f = open(self.__infoFilePath, 'w')
+                f = open(self.__infoFilePath, 'w', encoding='utf-8')
                 dump(newInfoJson, f)
                 f.close()
 

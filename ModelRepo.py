@@ -24,7 +24,7 @@ def getRepoMetadata(repoPath: str) -> dict:
 
     repoMetadata: dict = {}
     if exists(infoFilePath):
-        with open(infoFilePath) as f:
+        with open(infoFilePath, encoding='utf-8') as f:
             try:
                 repoMetadata = load(f)
             except JSONDecodeError:
@@ -47,7 +47,7 @@ def getModelsInRepository(repoPath: str) -> List[dict]:
         modelBinPath = join(allModelsFolder, dir, 'pytorch_model.bin')
 
         if exists(configPath) and exists(metaPath) and exists(modelBinPath):
-            with open(metaPath) as f:
+            with open(metaPath, encoding='utf-8') as f:
                 data = load(f)
                 data['filePath'] = dir
                 validModels.append(data)
@@ -69,7 +69,7 @@ def getDatasetsInRepository(repoPath: str) -> List[dict]:
         tokenizerPath = join(allDatasetsFolder, dir, 'aitextgen.tokenizer.json')
 
         if exists(datasetPath) and exists(metaPath) and exists(tokenizerPath):
-            with open(metaPath) as f: meta = load(f)
+            with open(metaPath, encoding='utf-8') as f: meta = load(f)
             validDatasets.append({
                 'pathName': dir,
                 'meta': meta
@@ -91,8 +91,8 @@ def getGeneratedTextsInRepository(repoPath: str) -> List[dict]:
         textsPath = join(allGensFolder, dir, 'texts.json')
 
         if exists(metaPath) and exists(textsPath):
-            with open(metaPath) as f: meta = load(f)
-            with open(textsPath) as f: texts = load(f)
+            with open(metaPath, encoding='utf-8') as f: meta = load(f)
+            with open(textsPath, encoding='utf-8') as f: texts = load(f)
             validGens.append({
                 'texts': texts,
                 'meta': meta
@@ -116,7 +116,7 @@ def getDatasetText(repoPath: str, datasetName: str) -> str:
     targetDataset = join(repoPath, 'datasets', datasetName, 'dataset')
     text = None
     if exists(targetDataset):
-        with open(targetDataset) as f:
+        with open(targetDataset, encoding='utf-8') as f:
             text = f.read()
 
     print(f'look for {targetDataset}')
@@ -129,10 +129,14 @@ def getModelStepData(repoPath: str, modelName: str):
     if not exists(modelLossDataPath): return None
 
     rows = []
-    with open(modelLossDataPath) as f:
+    with open(modelLossDataPath, encoding='utf-8', newline='') as f:
         r = reader(f)
         for row in r:
-            rows.append((float(row[0]), int(row[1]), float(row[2]), float(row[3])))
+            try:
+                rows.append((float(row[0]), int(row[1]), float(row[2]), float(row[3])))
+            except IndexError:
+                pass
+                
     return rows
 
 def processGeneratedSamples(repoPath: str, genTexts: List[str], prompt: str) -> List[dict]:
@@ -145,7 +149,7 @@ def processGeneratedSamples(repoPath: str, genTexts: List[str], prompt: str) -> 
 
     for datasetMeta in getDatasetsInRepository(repoPath):
         datasetPath = join(repoPath, 'datasets', datasetMeta['pathName'], 'dataset')
-        with open(datasetPath) as f: datasetText = f.read()
+        with open(datasetPath, encoding='utf-8') as f: datasetText = f.read()
         seqMatcher = SequenceMatcher(
             isjunk=lambda x: x == prompt, 
             a=datasetText
@@ -174,7 +178,7 @@ def initKnownRepos():
     # check if the knownRepos.json file exists
     if not exists(knownReposPath):
         print('Need to create knownRepos.json')
-        with open(knownReposPath, 'w') as f:
+        with open(knownReposPath, 'w', encoding='utf-8') as f:
             dump([], f)
 
 def getKnownRepos():
@@ -183,7 +187,7 @@ def getKnownRepos():
     # It does exist, so let's read from it
     knownReposRaw = []
     try:
-        with open(knownReposPath) as f:
+        with open(knownReposPath, encoding='utf-8') as f:
             knownReposRaw = load(f)
     except IOError as e:
         print(e.strerror())
@@ -204,7 +208,7 @@ def addKnownRepo(repoPath: str):
 
     knownReposRaw = []
     try:
-        with open(knownReposPath) as f:
+        with open(knownReposPath, encoding='utf-8') as f:
             knownReposRaw = load(f)
     except IOError as e:
         print(f'IO error: {e}')
@@ -214,7 +218,7 @@ def addKnownRepo(repoPath: str):
     knownReposRaw.append(repoPath)
 
     try:
-        with open(knownReposPath, 'w') as f:
+        with open(knownReposPath, 'w', encoding='utf-8') as f:
             dump(knownReposRaw, f)
     except IOError as e:
         print(f'IO error: {e}')
@@ -228,7 +232,7 @@ def renameRepo(repoPath: str, title: str):
     del existingMeta['path']
 
     try:
-        with open(infoFilePath, 'w') as f:
+        with open(infoFilePath, 'w', encoding='utf-8') as f:
             dump(existingMeta, f)
     except IOError as e:
         print(f'IO error while trying to rename repo: {e}')
@@ -239,7 +243,7 @@ def removeRepo(repoPath: str):
 
     knownReposRaw = []
     try:
-        with open(knownReposPath) as f:
+        with open(knownReposPath, encoding='utf-8') as f:
             knownReposRaw = load(f)
     except IOError as e:
         print(e.strerror())
@@ -253,7 +257,7 @@ def removeRepo(repoPath: str):
         return
 
     try:
-        with open(knownReposPath, 'w') as f:
+        with open(knownReposPath, 'w', encoding='utf-8') as f:
             dump(knownReposRaw, f)
     except IOError as e:
         print(f'Error writing knownRepos.json when attempting to remove a repo: {e}')

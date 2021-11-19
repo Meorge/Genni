@@ -52,7 +52,7 @@ class ATGGenerator(QThread):
         infoFilePath = join(repoFolderPath, 'info.json')
 
         jsonInfo: dict = {}
-        with open(infoFilePath) as f:
+        with open(infoFilePath, encoding='utf-8') as f:
             jsonInfo = load(f)
 
         latestModelName = jsonInfo.get('latest')
@@ -60,7 +60,7 @@ class ATGGenerator(QThread):
 
         # Find out what dataset this model was finetuned on, and grab its tokenizer
         latestModelMetaPath = join(latestModelPath, 'meta.json')
-        with open(latestModelMetaPath) as f:
+        with open(latestModelMetaPath, encoding='utf-8') as f:
             modelMeta = load(f)
 
         datasetName = modelMeta['dataset']
@@ -103,7 +103,7 @@ class ATGGenerator(QThread):
         mkdir(generatedSubfolderPath)
 
         metaJsonPath = join(generatedSubfolderPath, 'meta.json')
-        with open(metaJsonPath, 'w') as f:
+        with open(metaJsonPath, 'w', encoding='utf-8') as f:
             dump({
                 'n': self.n(),
                 'prompt': self.prompt(),
@@ -114,7 +114,7 @@ class ATGGenerator(QThread):
             }, f, indent=4)
 
         dataJsonPath = join(generatedSubfolderPath, 'texts.json')
-        with open(dataJsonPath, 'w') as f:
+        with open(dataJsonPath, 'w', encoding='utf-8') as f:
             dump(self.samplesWithDatasetMatches, f, indent=4)
 
         self.processingFinished.emit(self.samplesWithDatasetMatches)
