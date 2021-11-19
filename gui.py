@@ -1,132 +1,113 @@
-from typing import List
-from PyQt5.QtCore import QThread, pyqtSignal, QPointF
-from PyQt5.QtGui import QColor, QPen
-from PyQt5.QtWidgets import QLabel, QMainWindow, QApplication, QProgressBar, QPushButton, QVBoxLayout, QWidget
-from PyQt5.QtChart import QChart, QChartView, QLineSeries
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QAction, QIcon
+from PyQt6.QtWidgets import QMainWindow, QApplication, QSplitter, QStackedWidget, QTabBar, QToolBar, QVBoxLayout, QWidget
 import sys
 
-from aitextgen.aitextgen.TokenDataset import TokenDataset
-from aitextgen.aitextgen.tokenizers import train_tokenizer
-from aitextgen.aitextgen.utils import GPT2ConfigCPU
-from aitextgen.aitextgen import aitextgen
+from ModelRepo import getRepoMetadata
+from Views.Generation.GeneratingView import GeneratingModal
+from Views.ImportDatasetView import ImportDatasetModal
+from Views.RepositoryDatasetListView import RepositoryDatasetListView
+from Views.RepositoryGeneratedListView import RepositoryGeneratedListView
+from Views.RepositoryListView import RepositoryListView
+from Views.RepositoryModelHistoryView import RepositoryModelHistoryView
+from Views.Training.TrainingView import TrainingModal
 
-class MyWindow(QMainWindow):
+class RepositoryWindow(QMainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
 
-        self.lossSeries = QLineSeries()
-        self.lossSeries.setName("Loss")
-        self.lossSeries.setPen(QPen(QColor(250,100,80,80), 2))
+        # Set up toolbar
+        self.tb = QToolBar(self)
+        self.tb.setFloatable(False)
+        self.tb.setMovable(False)
+        self.tb.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
+        self.addToolBar(self.tb)
+        self.setUnifiedTitleAndToolBarOnMac(True)
 
-        self.avgLossSeries = QLineSeries()
-        self.avgLossSeries.setName("Average Loss")
-        self.avgLossSeries.setPen(QPen(QColor(10,100,250), 4))
+        self.trainAction = QAction(QIcon('./Icons/Train.svg'), 'Train', self, triggered=self.openTrainingModal, enabled=False)
+        self.genAction = QAction(QIcon('./Icons/Generate.svg'), 'Generate', self, triggered=self.openGenModal, enabled=False)
 
-        self.chart = QChart()
-        self.chart.setTitle("Training Session")
-        self.chart.addSeries(self.lossSeries)
-        self.chart.addSeries(self.avgLossSeries)
-        self.chart.createDefaultAxes()
-        # self.chart.setTheme(QChart.ChartThemeBlueCerulean)
+        self.addDatasetAction = QAction(QIcon('./Icons/Add Dataset.svg'), 'Add Dataset', self, triggered=self.openAddDatasetModal, enabled=False)
 
-        self.chart.axisX().setRange(0,0)
-        self.chart.axisY().setRange(0,0)
-        self.chart.axisY().setTitleText("Step Number")
+        self.tb.addAction(self.trainAction)
+        self.tb.addAction(self.genAction)
+        self.tb.addSeparator()
+        self.tb.addAction(self.addDatasetAction)
 
-        self.chartView = QChartView(self.chart)
-        self.stepLabel = QLabel("Steps go here")
-        self.lossLabel = QLabel("Loss goes here")
-        self.progbar = QProgressBar()
-        self.gobutton = QPushButton("Start Training", clicked=self.doTraining)
-
-        self.ly = QVBoxLayout(self)
-        self.ly.addWidget(self.chartView)
-        self.ly.addWidget(self.stepLabel)
-        self.ly.addWidget(self.lossLabel)
-        self.ly.addWidget(self.progbar)
-        self.ly.addWidget(self.gobutton)
-
-        self.setCentralWidget(QWidget())
-        self.centralWidget().setLayout(self.ly)
-
-    def doTraining(self):
-        self.trainThread = ATGTrainer(self)
-        self.trainThread.trainingStarted.connect(self.onTrainingStarted)
-        self.trainThread.trainingEnded.connect(self.onTrainingEnded)
-        self.trainThread.batchEnded.connect(self.onBatchEnded)
-        self.trainThread.start()
-
-    def onTrainingStarted(self):
-        self.gobutton.setEnabled(False)
-        self.progbar.setRange(0,0)
-
-    def onTrainingEnded(self):
-        self.gobutton.setEnabled(True)
-
-    def onBatchEnded(self, steps, total, loss, avg_loss):
-        self.stepLabel.setText(f'Step {steps}/{total} ({steps*100/total}%)')
-        self.lossLabel.setText(f'Loss = {loss:.2f}, Avg = {avg_loss:.2f}')
-        self.progbar.setRange(0, total)
-        self.progbar.setValue(steps)
-
-        self.chart.axisX().setRange(0, total)
-        self.chart.axisY().setRange(0, max(loss, self.chart.axisY(self.lossSeries).max()))
-
-        self.lossSeries << QPointF(steps, loss)
-        self.avgLossSeries << QPointF(steps, avg_loss)
-
+        self.modelHistoryView = RepositoryModelHistoryView(self)
+        self.datasetsView = RepositoryDatasetListView(self)
+        self.genTextsView = RepositoryGeneratedListView(self)
         
-class ATGTrainer(QThread):
-    trainingStarted = pyqtSignal()
-    trainingEnded = pyqtSignal()
-    batchEnded = pyqtSignal(int, int, float, float)
-    sampleTextGenerated = pyqtSignal(list)
-    modelSaved = pyqtSignal(int, int, str)
+        self.tabBar = QTabBar(self)
+        self.tabBar.setDrawBase(False)
+        self.tabBar.addTab('Models')
+        self.tabBar.addTab('Datasets')
+        self.tabBar.addTab('Generated Texts')
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+        self.tabBarLy = QVBoxLayout()
+        self.tabBarLy.addWidget(self.tabBar)
+        self.tabBarLy.setContentsMargins(6, 6, 6, 0)
 
-    def run(self):
-        file_name = "training.txt"
-        train_tokenizer(file_name)
-        tokenizer_file = "aitextgen.tokenizer.json"
-        config = GPT2ConfigCPU()
+        self.stack = QStackedWidget(self)
+        self.stack.addWidget(self.modelHistoryView)
+        self.stack.addWidget(self.datasetsView)
+        self.stack.addWidget(self.genTextsView)
 
-        self.ai = aitextgen(tokenizer_file=tokenizer_file, config=config)
-        self.data = TokenDataset(file_name, tokenizer_file=tokenizer_file, block_size=64)
+        self.tabBar.currentChanged.connect(self.stack.setCurrentIndex)
 
-        callbacks = {
-            'on_train_start': self.onTrainingStarted,
-            'on_train_end': self.onTrainingEnded,
-            'on_batch_end': self.onBatchEnded,
-            'on_sample_text_generated': self.onSampleTextGenerated,
-            'on_model_saved': self.onModelSaved
-        }
+        self.w = QWidget(self)
+        self.ly = QVBoxLayout(self.w)
+        self.ly.addLayout(self.tabBarLy)
+        self.ly.addWidget(self.stack)
+        self.ly.setContentsMargins(0,0,0,0)
 
-        self.ai.train(self.data, batch_size=1, num_steps=1000, generate_every=100, save_every=100, print_generated=False, print_saved=False, callbacks=callbacks)
+        self.repoListWidget = RepositoryListView(self)
+        self.repoListWidget.currentRepositoryChanged.connect(self.loadRepository)
+        self.sidebarSplitter = QSplitter(self)
+        self.sidebarSplitter.addWidget(self.repoListWidget)
+        self.sidebarSplitter.addWidget(self.w)
 
-    def onTrainingStarted(self):
-        # print("Training has started!")
-        self.trainingStarted.emit()
+        self.setCentralWidget(self.sidebarSplitter)
 
-    def onTrainingEnded(self):
-        # print("Training has ended!")
-        self.trainingEnded.emit()
+    def loadRepository(self, repoName: str):
+        self.setRepositoryName(repoName)
+        repoData: dict = getRepoMetadata(repoName)
+        self.setWindowTitle(repoData.get('title', 'Untitled Repository'))
 
-    def onBatchEnded(self, steps, total, loss, avg_loss):
-        # print(f"Step {steps}/{total} - loss {loss} and avg {avg_loss}")
-        self.batchEnded.emit(steps, total, loss, avg_loss)
+        self.trainAction.setEnabled(True)
+        self.genAction.setEnabled(repoData.get('latest') is not None)
+        self.addDatasetAction.setEnabled(True)
 
-    def onSampleTextGenerated(self, texts):
-        # print(f"Sample texts: {texts}")
-        self.sampleTextGenerated.emit(texts)
+        self.modelHistoryView.loadRepository(repoName)
+        self.datasetsView.loadRepository(repoName)
+        self.genTextsView.loadRepository(repoName)
 
-    def onModelSaved(self, steps, total, dir):
-        # print(f"Step {steps}/{total} - save to {dir}")
-        self.modelSaved.emit(steps, total, dir)
+    def openTrainingModal(self):
+        self.trainingModal = TrainingModal(self, self.repositoryName())
+        self.trainingModal.exec()
+        self.refreshContent()
+
+    def openGenModal(self):
+        self.genModal = GeneratingModal(self, self.repositoryName())
+        self.genModal.exec()
+        self.refreshContent()
+
+    def openAddDatasetModal(self):
+        self.addDatasetModal = ImportDatasetModal(self, self.repositoryName())
+        self.addDatasetModal.exec()
+        self.refreshContent()
+
+    def refreshContent(self):
+        self.modelHistoryView.refreshContent()
+        self.datasetsView.refreshContent()
+        self.genTextsView.refreshContent()
+
+    __repositoryName: str = None
+    def repositoryName(self) -> str: return self.__repositoryName
+    def setRepositoryName(self, repositoryName: str): self.__repositoryName = repositoryName
 
 if __name__ == "__main__":
     app = QApplication([])
-    window = MyWindow()
+    window = RepositoryWindow()
     window.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
