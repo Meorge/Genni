@@ -82,7 +82,8 @@ class ATGTrainer(QThread):
         datasetMetadata: dict = dataset['meta']
         tokenizerFilePath = join(datasetFolderPath, 'aitextgen.tokenizer.json')
 
-        aitextgenArgs = self.__config['constructorArgs']
+        if self.__config['constructorArgs'] is None: aitextgenArgs = {}
+        else: aitextgenArgs = self.__config['constructorArgs']
 
         modelsFolderPath = join(repoFolderPath, 'models')
 
