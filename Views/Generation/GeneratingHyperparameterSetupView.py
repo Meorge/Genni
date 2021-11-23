@@ -13,7 +13,7 @@ class GeneratingHyperparameterSetupView(QWidget):
         self.title.setTitle('Generate Samples')
         self.title.setSubtitle('Configure the output you\'d like.')
 
-        self.promptBox = QLineEdit('', self)
+        self.promptBox = QTextEdit('', self, acceptRichText=False)
         self.promptBox.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
 
         self.nSamplesSpinner = QSpinBox(self, minimum=0, maximum=999999, value=1)
@@ -36,7 +36,7 @@ class GeneratingHyperparameterSetupView(QWidget):
 
     def getHyperparameters(self) -> dict:
         return {
-            'prompt': self.promptBox.text(),
+            'prompt': self.promptBox.toPlainText(),
             'n': self.nSamplesSpinner.value(),
             'minLength': self.minLengthSpinner.value(),
             'maxLength': self.maxLengthSpinner.value(),
