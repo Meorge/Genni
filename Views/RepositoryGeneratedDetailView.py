@@ -214,4 +214,6 @@ class RepositoryGeneratedDetailHyperparamsView(QWidget):
         self.minLengthLabel.setValue(str(data.get('meta', {}).get('minLength', '---')))
         self.maxLengthLabel.setValue(str(data.get('meta', {}).get('maxLength', '---')))
         self.temperatureLabel.setValue(str(data.get('meta', {}).get('temperature', '---')))
+        self.topKLabel.setValue(str(data.get('meta', {}).get('topK', '---')))
+        self.topPLabel.setValue(str(data.get('meta', {}).get('topP', '---')))
         self.promptBox.setText(data.get('meta', {}).get('prompt', ''))

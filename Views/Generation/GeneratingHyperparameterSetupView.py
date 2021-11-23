@@ -20,6 +20,10 @@ class GeneratingHyperparameterSetupView(QWidget):
         self.minLengthSpinner = QSpinBox(self, minimum=0, maximum=999999, value=1)
         self.maxLengthSpinner = QSpinBox(self, minimum=0, maximum=999999, value=256)
         self.tempSpinner = QDoubleSpinBox(self, minimum=0, maximum=999999, value=0.7)
+
+        self.topKSpinner = QSpinBox(self, minimum=0, maximum=999999, value=0)
+        self.topPSpinner = QDoubleSpinBox(self, minimum=0, maximum=1, value=0, singleStep=0.1)
+
         self.checkAgainstDatasetCheckbox = QCheckBox('Check against datasets', parent=self)
         self.goButton = QPushButton('Generate', self, clicked=lambda: self.generationStarted.emit(self.getHyperparameters()))
 
@@ -30,6 +34,8 @@ class GeneratingHyperparameterSetupView(QWidget):
         self.ly.addRow('Minimum length:', self.minLengthSpinner)
         self.ly.addRow('Maximum length:', self.maxLengthSpinner)
         self.ly.addRow('Temperature:', self.tempSpinner) # TODO: descriptions of good temperature ranges?
+        self.ly.addRow('Top K:', self.topKSpinner)
+        self.ly.addRow('Top P:', self.topPSpinner)
         self.ly.addWidget(self.checkAgainstDatasetCheckbox)
         self.ly.addRow(self.goButton)
 
@@ -43,6 +49,8 @@ class GeneratingHyperparameterSetupView(QWidget):
             'minLength': self.minLengthSpinner.value(),
             'maxLength': self.maxLengthSpinner.value(),
             'temperature': self.tempSpinner.value(),
+            'topK': self.topKSpinner.value(),
+            'topP': self.topPSpinner.value(),
             'checkAgainstDatasets': self.checkAgainstDatasetCheckbox.isChecked()
         }
 

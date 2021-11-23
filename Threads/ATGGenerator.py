@@ -42,6 +42,14 @@ class ATGGenerator(QThread):
     def temperature(self) -> float: return self.__temperature
     def setTemperature(self, temperature: float): self.__temperature = temperature
 
+    __topK: int = 0
+    def topK(self) -> int: return self.__topK
+    def setTopK(self, topK: int): self.__topK = topK
+
+    __topP: float = 0
+    def topP(self) -> int: return self.__topP
+    def setTopP(self, topP: int): self.__topP = topP
+
     __checkAgainstDatasets: bool = True
     def checkAgainstDatasets(self) -> bool: return self.__checkAgainstDatasets
     def setCheckAgainstDatasets(self, check: bool): self.__checkAgainstDatasets = check
@@ -88,7 +96,9 @@ class ATGGenerator(QThread):
             min_length=self.minLength(),
             max_length=self.maxLength(),
             temperature=self.temperature(),
-            return_as_list=True
+            return_as_list=True,
+            top_k=self.topK(),
+            top_p=self.topP()
         )
 
         self.processingStarted.emit()
@@ -114,6 +124,8 @@ class ATGGenerator(QThread):
                 'minLength': self.minLength(),
                 'maxLength': self.maxLength(),
                 'temperature': self.temperature(),
+                'topP': self.topP(),
+                'topK': self.topK(),
                 'datetime': datetime.now().isoformat(timespec='seconds')
             }, f, indent=4)
 

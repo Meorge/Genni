@@ -72,6 +72,8 @@ class GeneratingModal(QDialog):
         self.genThread.setMinLength(hyperparameters['minLength'])
         self.genThread.setMaxLength(hyperparameters['maxLength'])
         self.genThread.setTemperature(hyperparameters['temperature'])
+        self.genThread.setTopK(hyperparameters['topK'])
+        self.genThread.setTopP(hyperparameters['topP'])
         self.genThread.setCheckAgainstDatasets(hyperparameters['checkAgainstDatasets'])
         self.genThread.start()
 
