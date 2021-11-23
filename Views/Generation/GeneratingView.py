@@ -2,7 +2,7 @@ from typing import List
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QCloseEvent
 from PyQt6.QtWidgets import QDialog, QMessageBox, QVBoxLayout, QWidget
-from ATGGenerator import ATGGenerator
+from Threads.ATGGenerator import ATGGenerator
 from Views.Generation.GeneratingHyperparameterSetupView import GeneratingCompleteView, GeneratingHyperparameterSetupView, GeneratingInProgressView, ProcessingInProgressView
 from Views.SwipingPageView import SwipingPageView
 

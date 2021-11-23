@@ -2,7 +2,7 @@ from logging import error
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QCloseEvent
 from PyQt6.QtWidgets import QDialog, QMessageBox, QPushButton, QVBoxLayout, QWidget
-from ATGTrainer import ATGTrainer
+from Threads.ATGTrainer import ATGTrainer
 from Views.Training.TrainingFreshModelView import SelectHuggingFaceRepoView, TrainingFreshModelGPT2SizeView, TrainingFreshModelView
 from Views.Training.TrainingHyperparameterSetupView import TrainingHyperparameterSetupView
 from Views.Training.TrainingInProgressView import TrainingInProgressView
