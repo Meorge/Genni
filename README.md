@@ -9,6 +9,7 @@
         - From one of OpenAI's publicly available GPT-2 models
         - From a model on [Hugging Face](https://huggingface.co/models)
     - **Generate text**
+        - Set Top P, Top K, and seed parameters
         - Compare texts against original datasets to avoid overtraining
 - **Watch statistics on a training session in real-time**, including a graph of loss and average loss
     - History for each training session is saved so you can review it whenever you want
@@ -43,7 +44,6 @@ If you're running Genni on macOS, you can install PyQtNotifications to receive n
     - Generate samples or save model on demand, in addition to automatically
     - Migrate to main aitextgen repository if/when there is callback support for improved trainer
 - Generation
-    - Set Top P, Top K, and seed parameters
     - Display generation progress (if aitextgen can provide access to it)
     - Compare generated texts against a user-defined word blocklist to prevent inappropriate language
 - Datasets
