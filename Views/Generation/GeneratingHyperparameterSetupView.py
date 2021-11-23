@@ -1,7 +1,7 @@
 from typing import List
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QDoubleSpinBox, QFormLayout, QLineEdit, QListWidget, QListWidgetItem, QPushButton, QSizePolicy, QSpinBox, QSplitter, QTextEdit, QWidget
+from PyQt6.QtWidgets import QCheckBox, QDoubleSpinBox, QFormLayout, QLineEdit, QListWidget, QListWidgetItem, QPushButton, QSizePolicy, QSpinBox, QSplitter, QTextEdit, QWidget
 from Views.WizardTitleView import WizardTitleView
 
 class GeneratingHyperparameterSetupView(QWidget):
@@ -20,6 +20,7 @@ class GeneratingHyperparameterSetupView(QWidget):
         self.minLengthSpinner = QSpinBox(self, minimum=0, maximum=999999, value=1)
         self.maxLengthSpinner = QSpinBox(self, minimum=0, maximum=999999, value=256)
         self.tempSpinner = QDoubleSpinBox(self, minimum=0, maximum=999999, value=0.7)
+        self.checkAgainstDatasetCheckbox = QCheckBox('Check against datasets', parent=self)
         self.goButton = QPushButton('Generate', self, clicked=lambda: self.generationStarted.emit(self.getHyperparameters()))
 
         self.ly = QFormLayout(self)
@@ -29,6 +30,7 @@ class GeneratingHyperparameterSetupView(QWidget):
         self.ly.addRow('Minimum length:', self.minLengthSpinner)
         self.ly.addRow('Maximum length:', self.maxLengthSpinner)
         self.ly.addRow('Temperature:', self.tempSpinner) # TODO: descriptions of good temperature ranges?
+        self.ly.addWidget(self.checkAgainstDatasetCheckbox)
         self.ly.addRow(self.goButton)
 
         self.ly.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow)
@@ -40,7 +42,8 @@ class GeneratingHyperparameterSetupView(QWidget):
             'n': self.nSamplesSpinner.value(),
             'minLength': self.minLengthSpinner.value(),
             'maxLength': self.maxLengthSpinner.value(),
-            'temperature': self.tempSpinner.value()
+            'temperature': self.tempSpinner.value(),
+            'checkAgainstDatasets': self.checkAgainstDatasetCheckbox.isChecked()
         }
 
 class GeneratingInProgressView(QWidget):
@@ -101,13 +104,14 @@ class GeneratingCompleteView(QWidget):
 
         self.listOfItems.clear()
         for i in self.__samples:
+            i: dict
             item = QListWidgetItem(self.listOfItems)
 
             textWithoutNewlines = i['text'].replace('\n', '')
             item.setText(textWithoutNewlines)
             item.setData(Qt.ItemDataRole.UserRole, i)
 
-            if len(i['datasetMatches']) > 0:
+            if i.get('datasetMatches') is not None and len(i.get('datasetMatches', [])) > 0:
                 topMatch = sorted(i.get('datasetMatches', []), key=lambda x: x.get('ratio', 0), reverse=True)[0]
                 ratio = topMatch.get('ratio', 0)
                 if ratio >= 1.0:

@@ -139,38 +139,40 @@ def getModelStepData(repoPath: str, modelName: str):
                 
     return rows
 
-def processGeneratedSamples(repoPath: str, genTexts: List[str], prompt: str) -> List[dict]:
+def processGeneratedSamples(repoPath: str, genTexts: List[str], prompt: str, checkAgainstDatasets: bool = True) -> List[dict]:
     """
     We want to check each of the generated samples against the training data
     to see if there's overtraining going on.
     """
 
-    output = [{ 'text': text, 'datasetMatches': []} for text in genTexts]
+    output = [{ 'text': text, 'datasetMatches': None} for text in genTexts]
 
-    for datasetMeta in getDatasetsInRepository(repoPath):
-        datasetPath = join(repoPath, 'datasets', datasetMeta['pathName'], 'dataset')
-        with open(datasetPath, encoding='utf-8') as f: datasetText = f.read()
-        seqMatcher = SequenceMatcher(
-            isjunk=lambda x: x == prompt, 
-            a=datasetText
-        )
+    if checkAgainstDatasets:
+        for i in output: i['datasetMatches'] = []
+        for datasetMeta in getDatasetsInRepository(repoPath):
+            datasetPath = join(repoPath, 'datasets', datasetMeta['pathName'], 'dataset')
+            with open(datasetPath, encoding='utf-8') as f: datasetText = f.read()
+            seqMatcher = SequenceMatcher(
+                isjunk=lambda x: x == prompt, 
+                a=datasetText
+            )
 
-        for genTextIndex, genText in enumerate(genTexts):
-            genText = genText.removeprefix(prompt)
-            seqMatcher.set_seq2(genText)
-            longestMatch = seqMatcher.find_longest_match()
+            for genTextIndex, genText in enumerate(genTexts):
+                genText = genText.removeprefix(prompt)
+                seqMatcher.set_seq2(genText)
+                longestMatch = seqMatcher.find_longest_match()
 
-            ratioMatchToGenerated = longestMatch.size / len(genText)
+                ratioMatchToGenerated = longestMatch.size / len(genText)
 
-            outputItem = {
-                'dataset': datasetMeta['pathName'],
-                'datasetMatchIndex': longestMatch.a,
-                'genTextMatchIndex': longestMatch.b,
-                'size': longestMatch.size,
-                'ratio': ratioMatchToGenerated
-            }
+                outputItem = {
+                    'dataset': datasetMeta['pathName'],
+                    'datasetMatchIndex': longestMatch.a,
+                    'genTextMatchIndex': longestMatch.b,
+                    'size': longestMatch.size,
+                    'ratio': ratioMatchToGenerated
+                }
 
-            output[genTextIndex]['datasetMatches'].append(outputItem)
+                output[genTextIndex]['datasetMatches'].append(outputItem)
 
     return output
 

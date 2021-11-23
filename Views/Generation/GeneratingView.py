@@ -43,6 +43,8 @@ class GeneratingView(QWidget):
         self.pageView.slideInWgt(self.processView)
 
     def onGenerationFinished(self, samples: List[str]):
+        # Issue: this signal gets emitted before the animation finishes, which means
+        # the "complete" slide in animation doesn't get played (there's no queue)
         self.compView.setSamples(samples)
         self.pageView.slideInWgt(self.compView)
 
@@ -70,6 +72,7 @@ class GeneratingModal(QDialog):
         self.genThread.setMinLength(hyperparameters['minLength'])
         self.genThread.setMaxLength(hyperparameters['maxLength'])
         self.genThread.setTemperature(hyperparameters['temperature'])
+        self.genThread.setCheckAgainstDatasets(hyperparameters['checkAgainstDatasets'])
         self.genThread.start()
 
     def closeEvent(self, event: QCloseEvent) -> None:

@@ -42,6 +42,10 @@ class ATGGenerator(QThread):
     def temperature(self) -> float: return self.__temperature
     def setTemperature(self, temperature: float): self.__temperature = temperature
 
+    __checkAgainstDatasets: bool = True
+    def checkAgainstDatasets(self) -> bool: return self.__checkAgainstDatasets
+    def setCheckAgainstDatasets(self, check: bool): self.__checkAgainstDatasets = check
+
     def run(self):
         from aitextgen_dev.aitextgen.utils import GPT2ConfigCPU
         from aitextgen_dev.aitextgen import aitextgen
@@ -89,9 +93,9 @@ class ATGGenerator(QThread):
 
         self.processingStarted.emit()
 
-        self.samplesWithDatasetMatches = processGeneratedSamples(self.__repoName, self.samples, self.prompt())
-
-
+        print(f'{datetime.now()} - Processing started')
+        self.samplesWithDatasetMatches = processGeneratedSamples(self.__repoName, self.samples, self.prompt(), self.checkAgainstDatasets())
+        print(f'{datetime.now()} - Processing complete')
 
         # make generated folder
         generatedFolderPath = join(repoFolderPath, 'generated')
@@ -117,6 +121,7 @@ class ATGGenerator(QThread):
         with open(dataJsonPath, 'w', encoding='utf-8') as f:
             dump(self.samplesWithDatasetMatches, f, indent=4)
 
+        print(f'{datetime.now()} - Generation data saved')
         self.processingFinished.emit(self.samplesWithDatasetMatches)
         
 
