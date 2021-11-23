@@ -1,3 +1,4 @@
+from random import randint
 from typing import List
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QIcon
@@ -24,6 +25,10 @@ class GeneratingHyperparameterSetupView(QWidget):
         self.topKSpinner = QSpinBox(self, minimum=0, maximum=999999, value=0)
         self.topPSpinner = QDoubleSpinBox(self, minimum=0, maximum=1, value=0, singleStep=0.1)
 
+        # using same method of generating a random integer as aitextgen's generate_to_file() function
+        initialSeed = randint(10 ** 7, 10 ** 8 - 1)
+        self.seedSpinner = QSpinBox(self, minimum=0, maximum=99999999, value=initialSeed)
+
         self.checkAgainstDatasetCheckbox = QCheckBox('Check against datasets', parent=self)
         self.goButton = QPushButton('Generate', self, clicked=lambda: self.generationStarted.emit(self.getHyperparameters()))
 
@@ -36,6 +41,7 @@ class GeneratingHyperparameterSetupView(QWidget):
         self.ly.addRow('Temperature:', self.tempSpinner) # TODO: descriptions of good temperature ranges?
         self.ly.addRow('Top K:', self.topKSpinner)
         self.ly.addRow('Top P:', self.topPSpinner)
+        self.ly.addRow('Seed:', self.seedSpinner)
         self.ly.addWidget(self.checkAgainstDatasetCheckbox)
         self.ly.addRow(self.goButton)
 
@@ -51,6 +57,7 @@ class GeneratingHyperparameterSetupView(QWidget):
             'temperature': self.tempSpinner.value(),
             'topK': self.topKSpinner.value(),
             'topP': self.topPSpinner.value(),
+            'seed': self.seedSpinner.value(),
             'checkAgainstDatasets': self.checkAgainstDatasetCheckbox.isChecked()
         }
 

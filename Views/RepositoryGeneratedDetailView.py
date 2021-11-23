@@ -216,4 +216,5 @@ class RepositoryGeneratedDetailHyperparamsView(QWidget):
         self.temperatureLabel.setValue(str(data.get('meta', {}).get('temperature', '---')))
         self.topKLabel.setValue(str(data.get('meta', {}).get('topK', '---')))
         self.topPLabel.setValue(str(data.get('meta', {}).get('topP', '---')))
+        self.seedLabel.setValue(str(data.get('meta', {}).get('seed', '---')))
         self.promptBox.setText(data.get('meta', {}).get('prompt', ''))
