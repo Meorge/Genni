@@ -90,7 +90,8 @@ class RepositoryGeneratedDetailView(QWidget):
                 i: dict
                 item.setText(i.get('text', '').replace('\n', ''))
 
-                if len(i.get('datasetMatches', [])) > 0:
+                
+                if i.get('datasetMatches', None) is not None and len(i.get('datasetMatches', [])) > 0:
                     topMatch = sorted(i.get('datasetMatches', []), key=lambda x: x.get('ratio', 0), reverse=True)[0]
                     ratio = topMatch.get('ratio', 0)
 
@@ -141,6 +142,7 @@ class RepositoryGeneratedDetailVertSplitterView(QSplitter):
         self.rawTextEdit.setText(sample.get('text', ''))
 
         self.originalityTreeView.clear()
+        if sample.get('datasetMatches', None) is None: return
         for match in sorted(sample.get('datasetMatches', []), key=lambda a: a.get('ratio', 0), reverse=True):
             match: dict
             matchItem = QTreeWidgetItem(self.originalityTreeView)
@@ -212,4 +214,7 @@ class RepositoryGeneratedDetailHyperparamsView(QWidget):
         self.minLengthLabel.setValue(str(data.get('meta', {}).get('minLength', '---')))
         self.maxLengthLabel.setValue(str(data.get('meta', {}).get('maxLength', '---')))
         self.temperatureLabel.setValue(str(data.get('meta', {}).get('temperature', '---')))
+        self.topKLabel.setValue(str(data.get('meta', {}).get('topK', '---')))
+        self.topPLabel.setValue(str(data.get('meta', {}).get('topP', '---')))
+        self.seedLabel.setValue(str(data.get('meta', {}).get('seed', '---')))
         self.promptBox.setText(data.get('meta', {}).get('prompt', ''))

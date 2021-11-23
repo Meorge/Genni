@@ -42,6 +42,22 @@ class ATGGenerator(QThread):
     def temperature(self) -> float: return self.__temperature
     def setTemperature(self, temperature: float): self.__temperature = temperature
 
+    __topK: int = 0
+    def topK(self) -> int: return self.__topK
+    def setTopK(self, topK: int): self.__topK = topK
+
+    __topP: float = 0
+    def topP(self) -> int: return self.__topP
+    def setTopP(self, topP: int): self.__topP = topP
+
+    __seed: int = 0
+    def seed(self) -> int: return self.__seed
+    def setSeed(self, seed: int): self.__seed = seed
+
+    __checkAgainstDatasets: bool = True
+    def checkAgainstDatasets(self) -> bool: return self.__checkAgainstDatasets
+    def setCheckAgainstDatasets(self, check: bool): self.__checkAgainstDatasets = check
+
     def run(self):
         from aitextgen_dev.aitextgen.utils import GPT2ConfigCPU
         from aitextgen_dev.aitextgen import aitextgen
@@ -52,7 +68,7 @@ class ATGGenerator(QThread):
         infoFilePath = join(repoFolderPath, 'info.json')
 
         jsonInfo: dict = {}
-        with open(infoFilePath) as f:
+        with open(infoFilePath, encoding='utf-8') as f:
             jsonInfo = load(f)
 
         latestModelName = jsonInfo.get('latest')
@@ -60,7 +76,7 @@ class ATGGenerator(QThread):
 
         # Find out what dataset this model was finetuned on, and grab its tokenizer
         latestModelMetaPath = join(latestModelPath, 'meta.json')
-        with open(latestModelMetaPath) as f:
+        with open(latestModelMetaPath, encoding='utf-8') as f:
             modelMeta = load(f)
 
         datasetName = modelMeta['dataset']
@@ -84,14 +100,17 @@ class ATGGenerator(QThread):
             min_length=self.minLength(),
             max_length=self.maxLength(),
             temperature=self.temperature(),
-            return_as_list=True
+            return_as_list=True,
+            top_k=self.topK(),
+            top_p=self.topP(),
+            seed=self.seed()
         )
 
         self.processingStarted.emit()
 
-        self.samplesWithDatasetMatches = processGeneratedSamples(self.__repoName, self.samples, self.prompt())
-
-
+        print(f'{datetime.now()} - Processing started')
+        self.samplesWithDatasetMatches = processGeneratedSamples(self.__repoName, self.samples, self.prompt(), self.checkAgainstDatasets())
+        print(f'{datetime.now()} - Processing complete')
 
         # make generated folder
         generatedFolderPath = join(repoFolderPath, 'generated')
@@ -103,20 +122,24 @@ class ATGGenerator(QThread):
         mkdir(generatedSubfolderPath)
 
         metaJsonPath = join(generatedSubfolderPath, 'meta.json')
-        with open(metaJsonPath, 'w') as f:
+        with open(metaJsonPath, 'w', encoding='utf-8') as f:
             dump({
                 'n': self.n(),
                 'prompt': self.prompt(),
                 'minLength': self.minLength(),
                 'maxLength': self.maxLength(),
                 'temperature': self.temperature(),
+                'topP': self.topP(),
+                'topK': self.topK(),
+                'seed': self.seed(),
                 'datetime': datetime.now().isoformat(timespec='seconds')
             }, f, indent=4)
 
         dataJsonPath = join(generatedSubfolderPath, 'texts.json')
-        with open(dataJsonPath, 'w') as f:
+        with open(dataJsonPath, 'w', encoding='utf-8') as f:
             dump(self.samplesWithDatasetMatches, f, indent=4)
 
+        print(f'{datetime.now()} - Generation data saved')
         self.processingFinished.emit(self.samplesWithDatasetMatches)
         
 

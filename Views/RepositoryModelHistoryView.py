@@ -3,7 +3,6 @@ from PyQt6.QtCore import QMargins, Qt, pyqtSignal
 from PyQt6.QtGui import QColor, QColorConstants, QIcon, QPainter, QPen, QPixmap
 from PyQt6.QtWidgets import QHeaderView, QSplitter, QTreeWidget, QTreeWidgetItem, QWidget
 
-from humanize import naturaltime
 from ModelRepo import getDatasetMetadata, getDurationString, getModelsInRepository, getRepoMetadata
 from Views.RepositoryModelDetailView import RepositoryModelDetailView
 

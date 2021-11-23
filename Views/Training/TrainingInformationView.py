@@ -2,7 +2,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import QFrame, QGridLayout, QPlainTextEdit, QSizePolicy, QSplitter, QTreeView, QTreeWidget, QTreeWidgetItem, QWidget
 from datetime import timedelta
-from ATGTrainer import ATGTrainer
+from Threads.ATGTrainer import ATGTrainer
 
 from ModelRepo import getDurationString
 

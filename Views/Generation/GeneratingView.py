@@ -2,7 +2,7 @@ from typing import List
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QCloseEvent
 from PyQt6.QtWidgets import QDialog, QMessageBox, QVBoxLayout, QWidget
-from ATGGenerator import ATGGenerator
+from Threads.ATGGenerator import ATGGenerator
 from Views.Generation.GeneratingHyperparameterSetupView import GeneratingCompleteView, GeneratingHyperparameterSetupView, GeneratingInProgressView, ProcessingInProgressView
 from Views.SwipingPageView import SwipingPageView
 
@@ -43,6 +43,8 @@ class GeneratingView(QWidget):
         self.pageView.slideInWgt(self.processView)
 
     def onGenerationFinished(self, samples: List[str]):
+        # Issue: this signal gets emitted before the animation finishes, which means
+        # the "complete" slide in animation doesn't get played (there's no queue)
         self.compView.setSamples(samples)
         self.pageView.slideInWgt(self.compView)
 
@@ -70,6 +72,10 @@ class GeneratingModal(QDialog):
         self.genThread.setMinLength(hyperparameters['minLength'])
         self.genThread.setMaxLength(hyperparameters['maxLength'])
         self.genThread.setTemperature(hyperparameters['temperature'])
+        self.genThread.setTopK(hyperparameters['topK'])
+        self.genThread.setTopP(hyperparameters['topP'])
+        self.genThread.setSeed(hyperparameters['seed'])
+        self.genThread.setCheckAgainstDatasets(hyperparameters['checkAgainstDatasets'])
         self.genThread.start()
 
     def closeEvent(self, event: QCloseEvent) -> None:

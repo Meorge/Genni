@@ -1,6 +1,6 @@
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
-from CheckHuggingFaceThread import CheckHuggingFaceThread
+from Threads.CheckHuggingFaceThread import CheckHuggingFaceThread
 from Views.ButtonWithIconAndDetailView import ButtonWithIconAndDetailView
 from Views.WizardTitleView import WizardTitleView
 

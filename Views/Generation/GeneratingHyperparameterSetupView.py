@@ -1,7 +1,8 @@
+from random import randint
 from typing import List
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QDoubleSpinBox, QFormLayout, QLineEdit, QListWidget, QListWidgetItem, QPushButton, QSizePolicy, QSpinBox, QSplitter, QTextEdit, QWidget
+from PyQt6.QtWidgets import QCheckBox, QDoubleSpinBox, QFormLayout, QLineEdit, QListWidget, QListWidgetItem, QPushButton, QSizePolicy, QSpinBox, QSplitter, QTextEdit, QWidget
 from Views.WizardTitleView import WizardTitleView
 
 class GeneratingHyperparameterSetupView(QWidget):
@@ -13,13 +14,22 @@ class GeneratingHyperparameterSetupView(QWidget):
         self.title.setTitle('Generate Samples')
         self.title.setSubtitle('Configure the output you\'d like.')
 
-        self.promptBox = QLineEdit('', self)
+        self.promptBox = QTextEdit('', self, acceptRichText=False)
         self.promptBox.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
 
         self.nSamplesSpinner = QSpinBox(self, minimum=0, maximum=999999, value=1)
         self.minLengthSpinner = QSpinBox(self, minimum=0, maximum=999999, value=1)
         self.maxLengthSpinner = QSpinBox(self, minimum=0, maximum=999999, value=256)
         self.tempSpinner = QDoubleSpinBox(self, minimum=0, maximum=999999, value=0.7)
+
+        self.topKSpinner = QSpinBox(self, minimum=0, maximum=999999, value=0)
+        self.topPSpinner = QDoubleSpinBox(self, minimum=0, maximum=1, value=0, singleStep=0.1)
+
+        # using same method of generating a random integer as aitextgen's generate_to_file() function
+        initialSeed = randint(10 ** 7, 10 ** 8 - 1)
+        self.seedSpinner = QSpinBox(self, minimum=0, maximum=99999999, value=initialSeed)
+
+        self.checkAgainstDatasetCheckbox = QCheckBox('Check against datasets', parent=self)
         self.goButton = QPushButton('Generate', self, clicked=lambda: self.generationStarted.emit(self.getHyperparameters()))
 
         self.ly = QFormLayout(self)
@@ -29,6 +39,10 @@ class GeneratingHyperparameterSetupView(QWidget):
         self.ly.addRow('Minimum length:', self.minLengthSpinner)
         self.ly.addRow('Maximum length:', self.maxLengthSpinner)
         self.ly.addRow('Temperature:', self.tempSpinner) # TODO: descriptions of good temperature ranges?
+        self.ly.addRow('Top K:', self.topKSpinner)
+        self.ly.addRow('Top P:', self.topPSpinner)
+        self.ly.addRow('Seed:', self.seedSpinner)
+        self.ly.addWidget(self.checkAgainstDatasetCheckbox)
         self.ly.addRow(self.goButton)
 
         self.ly.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow)
@@ -36,11 +50,15 @@ class GeneratingHyperparameterSetupView(QWidget):
 
     def getHyperparameters(self) -> dict:
         return {
-            'prompt': self.promptBox.text(),
+            'prompt': self.promptBox.toPlainText(),
             'n': self.nSamplesSpinner.value(),
             'minLength': self.minLengthSpinner.value(),
             'maxLength': self.maxLengthSpinner.value(),
-            'temperature': self.tempSpinner.value()
+            'temperature': self.tempSpinner.value(),
+            'topK': self.topKSpinner.value(),
+            'topP': self.topPSpinner.value(),
+            'seed': self.seedSpinner.value(),
+            'checkAgainstDatasets': self.checkAgainstDatasetCheckbox.isChecked()
         }
 
 class GeneratingInProgressView(QWidget):
@@ -101,13 +119,14 @@ class GeneratingCompleteView(QWidget):
 
         self.listOfItems.clear()
         for i in self.__samples:
+            i: dict
             item = QListWidgetItem(self.listOfItems)
 
             textWithoutNewlines = i['text'].replace('\n', '')
             item.setText(textWithoutNewlines)
             item.setData(Qt.ItemDataRole.UserRole, i)
 
-            if len(i['datasetMatches']) > 0:
+            if i.get('datasetMatches') is not None and len(i.get('datasetMatches', [])) > 0:
                 topMatch = sorted(i.get('datasetMatches', []), key=lambda x: x.get('ratio', 0), reverse=True)[0]
                 ratio = topMatch.get('ratio', 0)
                 if ratio >= 1.0:

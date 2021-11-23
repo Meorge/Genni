@@ -1,6 +1,7 @@
 
 from PyQt6.QtCore import QAbstractAnimation, QEasingCurve, QParallelAnimationGroup, QPoint, QPropertyAnimation, Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtWidgets import QStackedWidget
+from queue import Queue
 
 class SwipingPageView(QStackedWidget):
     """
@@ -18,6 +19,7 @@ class SwipingPageView(QStackedWidget):
         self.m_wrap = False
         self.m_pnow = QPoint(0, 0)
         self.m_active = False
+        self.m_queue = Queue()
 
     def setDirection(self, direction):
         self.m_direction = direction
@@ -52,6 +54,7 @@ class SwipingPageView(QStackedWidget):
 
     def slideInWgt(self, newwidget):
         if self.m_active:
+            self.m_queue.put(lambda: self.slideInWgt(newwidget))
             return
 
         self.m_active = True
@@ -115,3 +118,6 @@ class SwipingPageView(QStackedWidget):
         self.widget(self.m_now).move(self.m_pnow)
         self.m_active = False
         self.animationFinished.emit()
+
+        if self.m_queue.qsize() != 0:
+            self.m_queue.get()()
