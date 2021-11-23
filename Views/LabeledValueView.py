@@ -2,6 +2,8 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor, QFont
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QSizePolicy, QVBoxLayout, QWidget
 
+from Views.Colors import lerpColor
+
 class LabeledValueView(QWidget):
     def __init__(self, title: str, value: str, valueColor: QColor = None, parent=None):
         super().__init__(parent)
@@ -21,10 +23,8 @@ class LabeledValueView(QWidget):
         self.ly.setSpacing(0)
         self.ly.setContentsMargins(0,0,0,0)
 
-        self.valuePalette = self.valueLabel.palette()
-
         if valueColor is not None:
-            self.valuePalette.setColor(self.valueLabel.foregroundRole(), valueColor)
+            self.setValueColor(valueColor)
         
         self.valueLabel.setPalette(self.valuePalette)
 
@@ -34,4 +34,7 @@ class LabeledValueView(QWidget):
         self.valueLabel.setText(value)
 
     def setValueColor(self, color: QColor):
-        self.valuePalette.setColor(self.valueLabel.foregroundRole(), color)
+        adjustedColor = lerpColor(self.palette().text().color(), color, 0.7)
+        self.valuePalette = self.valueLabel.palette()
+        self.valuePalette.setColor(self.valueLabel.foregroundRole(), adjustedColor)
+        self.valueLabel.setPalette(self.valuePalette)
