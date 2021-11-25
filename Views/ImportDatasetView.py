@@ -1,6 +1,9 @@
 from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtWidgets import QDialog, QVBoxLayout
-from Threads.ATGDatasetTokenizer import ATGDatasetTokenizer
+from Threads.DatasetBuilder import TextDatasetBuilder
+from Threads.TwitterDatasetBuilder import TwitterDatasetBuilder
+from Views.AddingDataset.TwitterSource.DatasetFromTwitterConfigView import DatasetFromTwitterConfigView
+from Views.AddingDataset.TwitterSource.DatasetFromTwitterProgressView import DatasetFromTwitterProgressView
 from Views.SwipingPageView import SwipingPageView
 from Views.AddingDataset.DatasetSourceSelectView import DatasetSourceSelectView
 from Views.AddingDataset.TextSource.DatasetFromTextConfigView import DatasetFromTextConfigView
@@ -14,40 +17,76 @@ class ImportDatasetView(SwipingPageView):
         super().__init__(parent)
         self.__repoName = repoName
         self.sourceSelectView = DatasetSourceSelectView(self)
-        self.sourceSelectView.proceed.connect(self.goToConfigTextFileView)
-        # For text file
-        self.configTextFileView = DatasetFromTextConfigView(self)
-        self.configTextFileView.back.connect(self.goToSourceSelectView)
-        self.configTextFileView.proceed.connect(self.goToImportTextFileView)
-        self.configTextFileView.proceed.connect(self.runImportDatasetThread)
-
-        self.importTextFileView = DatasetFromTextImportProgressView(self)
-
-        self.importTextDoneView = DatasetFromTextImportDoneView(self)
-        self.importTextDoneView.finished.connect(self.finished)
-
-
+        self.sourceSelectView.proceed.connect(self.selectSource)
         self.addWidget(self.sourceSelectView)
-        self.addWidget(self.configTextFileView)
-        self.addWidget(self.importTextFileView)
-        self.addWidget(self.importTextDoneView)
+
+
+        # For text file
+        self.textConfigView = DatasetFromTextConfigView(self)
+        self.textConfigView.back.connect(self.goToSourceSelectView)
+        self.textConfigView.proceed.connect(self.runImportDatasetThread)
+        self.textProgressView = DatasetFromTextImportProgressView(self)
+        self.addWidget(self.textConfigView)
+        self.addWidget(self.textProgressView)
+
+
+        # For Twitter
+        self.twitterConfigView = DatasetFromTwitterConfigView(self)
+        self.twitterConfigView.back.connect(self.goToSourceSelectView)
+        self.twitterConfigView.proceed.connect(self.runDownloadTweetsThread)
+        self.twitterProgressView = DatasetFromTwitterProgressView(self)
+        self.twitterDoneView = DatasetFromTextImportDoneView(self)
+        self.twitterDoneView.finished.connect(self.finished)
+
+        self.addWidget(self.twitterConfigView)
+        self.addWidget(self.twitterProgressView)
+        self.addWidget(self.twitterDoneView)
+
+        # For all methods
+        self.doneView = DatasetFromTextImportDoneView(self)
+        self.doneView.finished.connect(self.finished)
+        self.addWidget(self.doneView)
+        
+    def selectSource(self, source: str):
+        {
+            'text': self.goToTextConfigView,
+            'twitter': self.goToTwitterConfigView
+        }[source]()
 
     def goToSourceSelectView(self): self.slideInWgt(self.sourceSelectView)
-    def goToConfigTextFileView(self): self.slideInWgt(self.configTextFileView)
-    def goToImportTextFileView(self): self.slideInWgt(self.importTextFileView)
-    def goToImportTextDoneView(self): self.slideInWgt(self.importTextDoneView)
+    def goToTextConfigView(self): self.slideInWgt(self.textConfigView)
+    def goToTextProgressView(self): self.slideInWgt(self.textProgressView)
+
+    def goToTwitterConfigView(self): self.slideInWgt(self.twitterConfigView)
+    def goToTwitterProgressView(self): self.slideInWgt(self.twitterProgressView)
+    def goToTwitterDoneView(self): self.slideInWgt(self.twitterDoneView)
+
+    def goToDoneView(self): self.slideInWgt(self.doneView)
+
 
     def runImportDatasetThread(self):
-        info = self.configTextFileView.getConfigData()
+        self.goToTextProgressView()
+
+        info = self.textConfigView.getConfigData()
         
-        self.datasetThread = ATGDatasetTokenizer(self, repoName=self.__repoName)
+        self.datasetThread = TextDatasetBuilder(self, repoName=self.__repoName)
         self.datasetThread.setTitle(info['title'])
         self.datasetThread.setComment(info['comment'])
         self.datasetThread.setLineByLine(info['lineByLine'])
         self.datasetThread.setDataset(info['filename'])
 
-        self.datasetThread.finished.connect(self.goToImportTextDoneView)
+        self.datasetThread.finished.connect(self.goToDoneView)
         self.datasetThread.start()
+
+    def runDownloadTweetsThread(self):
+        self.goToTwitterProgressView()
+
+        searchQuery = self.twitterConfigView.searchQuery()
+
+        self.twitterThread = TwitterDatasetBuilder(self, repoName=self.__repoName)
+        self.twitterThread.setSearchQuery(searchQuery)
+        self.twitterThread.finished.connect(self.goToDoneView)
+        self.twitterThread.start()
 
 class ImportDatasetModal(QDialog):
     def __init__(self, parent=None, repoName=None):

@@ -1,8 +1,5 @@
-from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtWidgets import QCheckBox, QDialog, QFormLayout, QHBoxLayout, QLineEdit, QPushButton, QTextEdit, QVBoxLayout, QWidget
-from Threads.ATGDatasetTokenizer import ATGDatasetTokenizer
-from Views.ButtonWithIconAndDetailView import ButtonWithIconAndDetailView
-from Views.SwipingPageView import SwipingPageView
+from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtWidgets import QCheckBox, QFormLayout, QHBoxLayout, QLineEdit, QPushButton, QTextEdit, QWidget
 from Views.FilePicker import FilePicker
 from Views.WizardTitleView import WizardTitleView
 
