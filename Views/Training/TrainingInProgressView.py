@@ -84,7 +84,7 @@ class TrainingInProgressView(QWidget):
         self.trainingInfo.onSamplesGenerated(step, texts)
 
     def onBatchEnded(self, steps, total, loss, avg_loss):
-        self.trainingInfo.onBatchEnded(steps, total, avg_loss)
+        self.trainingInfo.onBatchEnded(steps, total, loss, avg_loss)
         self.xAxis.setRange(0, total)
         self.yAxis.setRange(0, max(loss, self.yAxis.max()))
 
