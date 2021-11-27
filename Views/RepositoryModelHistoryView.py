@@ -64,7 +64,7 @@ class RepositoryModelHistoryView(QSplitter):
 
             item = QTreeWidgetItem(self.list, [
                 i.get('name', 'Unnamed Model'), # TODO: let the user name models
-                modelTime.strftime('%d/%m/%y, %I:%I%p'),
+                modelTime.strftime('%d/%m/%y, %I:%M %p'),
                 datasetName,
                 durationString,
                 str(i.get('learningRate', None)),
