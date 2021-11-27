@@ -65,6 +65,8 @@ class ATGTrainer(QThread):
         from aitextgen_dev.aitextgen.TokenDataset import TokenDataset
         from aitextgen_dev.aitextgen import aitextgen
 
+        self.__dataRows = []
+
         dataset = self.__config['dataset']
         steps = self.__config['steps']
         genEvery = self.__config['genEvery']

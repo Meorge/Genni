@@ -25,7 +25,6 @@ class TrainingInformationView(QWidget):
 
         self.currentLossLabel = LabeledValueView("Loss", "-.--", COLOR_YELLOW)
         self.avgLossLabel = LabeledValueView("Avg. Loss", "-.--", COLOR_YELLOW)
-        # self.dAvgLossLabel = LabeledValueView("Change in Avg.  Loss", "-.--", QColor(200, 255, 170))
 
         self.stepsToGenTextLabel = LabeledValueView("Next Samples", "---", COLOR_BLUE)
         self.stepsToSaveModelLabel = LabeledValueView("Next Save", "---", COLOR_BLUE)
