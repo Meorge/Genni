@@ -18,6 +18,7 @@ class ATGTrainer(QThread):
     sampleTextGenerated = pyqtSignal(int, list)
     modelSaved = pyqtSignal(int, int, str)
     errorOccurred = pyqtSignal(Exception)
+    stopTriggered = pyqtSignal()
 
     timePassed = pyqtSignal(timedelta, float)
 
@@ -30,6 +31,8 @@ class ATGTrainer(QThread):
     __dataRows = []
 
     __avgLoss = None
+
+    __shouldStop = False
 
     def __init__(self, parent=None, repoName=None):
         super().__init__(parent)
@@ -48,6 +51,10 @@ class ATGTrainer(QThread):
 
     def trainingSamples(self) -> dict: return self.__samples
 
+    def triggerStop(self):
+        self.__shouldStop = True
+        self.stopTriggered.emit()
+
     def onTrainingStarted_main(self):
         print('training started was emitted')
         self.startTime = datetime.now()
@@ -65,6 +72,7 @@ class ATGTrainer(QThread):
         from aitextgen_dev.aitextgen.TokenDataset import TokenDataset
         from aitextgen_dev.aitextgen import aitextgen
 
+        self.__shouldStop = False
         self.__dataRows = []
 
         dataset = self.__config['dataset']
@@ -168,7 +176,7 @@ class ATGTrainer(QThread):
         ).exec()
         self.trainingEnded.emit()
 
-    def onBatchEnded(self, steps, total, loss, avg_loss):
+    def onBatchEnded(self, steps, total, loss, avg_loss, trainer):
         # print(f"Step {steps}/{total} - loss {loss} and avg {avg_loss}")
         self.__currentStep = steps
         self.__avgLoss = avg_loss
@@ -177,6 +185,8 @@ class ATGTrainer(QThread):
         elapsed = currentTime - self.startTime
         row = [elapsed.total_seconds(), steps, loss, avg_loss]
         self.__dataRows.append(row)
+
+        trainer.should_stop = self.__shouldStop
 
         self.batchEnded.emit(steps, total, loss, avg_loss)
 

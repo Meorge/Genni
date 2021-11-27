@@ -65,6 +65,9 @@ class TrainingView(QWidget):
         self.trainingInProgressView.setHyperparameters(hp)
         self.trainingStarted.emit(hp)
 
+    def onStopTriggered(self):
+        self.trainingInProgressView.onStopTriggered()
+
 
 class TrainingModal(QDialog):
     def __init__(self, parent=None, repoName=None):
@@ -95,10 +98,12 @@ class TrainingModal(QDialog):
         self.trainThread.sampleTextGenerated.connect(self.trainingView.trainingInProgressView.onSamplesGenerated)
         self.trainThread.timePassed.connect(self.trainingView.trainingInProgressView.trainingInfo.onTimePassed)
         self.trainThread.errorOccurred.connect(self.onErrorOccurred)
+        self.trainThread.stopTriggered.connect(self.onStopTriggered)
         self.trainThread.start()
 
     def closeEvent(self, event: QCloseEvent) -> None:
         if self.trainThread is not None and self.trainThread.isRunning():
+            event.ignore()
             confirmCloseBox = QMessageBox(self)
             confirmCloseBox.setText('Training has not yet finished.')
             confirmCloseBox.setInformativeText('Are you sure you want to abort this training session?')
@@ -110,10 +115,9 @@ class TrainingModal(QDialog):
             result = confirmCloseBox.exec()
 
             if result == QMessageBox.StandardButton.Yes:
-                self.trainThread.terminate() # docs say it's unsafe but I'm not sure how else to kill aitextgen
-                event.accept()
+                self.trainThread.triggerStop()
             elif result == QMessageBox.StandardButton.No:
-                event.ignore()
+                pass
 
 
     def onErrorOccurred(self, e: Exception):
@@ -129,3 +133,8 @@ class TrainingModal(QDialog):
 
         errorOccurredBox.exec()
         self.close()
+
+    def onStopTriggered(self):
+        print('Stop was triggered')
+        self.trainingView.onStopTriggered()
+        # self.setWindowFlag(Qt.WindowType.WindowCloseButtonHint, False)

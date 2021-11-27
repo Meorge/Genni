@@ -80,6 +80,10 @@ class TrainingInProgressView(QWidget):
         self.stopTrainingButton.setVisible(False)
         self.doneButton.setVisible(True)
 
+    def onStopTriggered(self):
+        self.title.setTitle('Aborting Training...')
+        self.title.setSubtitle('Training will end once this step is complete. Please wait.')
+
     def onSamplesGenerated(self, step, texts):
         self.trainingInfo.onSamplesGenerated(step, texts)
 
