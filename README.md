@@ -4,6 +4,9 @@
 ## Current Features
 - **Model repositories** keep trained models, datasets, and generated texts all in one place
 - **Interactive wizards**
+    - **Import Datasets**
+        - From a text file
+        - From Twitter (such as all of the Tweets from a specific account or hashtag)
     - **Train models** from a variety of sources
         - From scratch, based only on your dataset
         - From one of OpenAI's publicly available GPT-2 models
@@ -17,6 +20,7 @@
 ## Requirements
 ### Python 3.9
 Genni is being developed and tested with Python 3.9.9. Other versions of Python *may* work, but I can't say for sure.
+
 ### PyQt6 and PyQt6-Charts
 These libraries can be installed with the terminal command:
 ```
@@ -27,6 +31,12 @@ pip install PyQt6 PyQt6-Charts
 To display live training data, a customized version of aitextgen must be used. You can find this version at https://github.com/Meorge/aitextgen/tree/callbacks. Changes are being made to the way aitextgen performs training, so hopefully in the future Genni will migrate to using that instead.
 
 As of right now, this repository should be cloned into a directory named `aitextgen_dev` in the same directory as this file.
+
+### snscrape
+In order to download Tweets for your datasets, you'll need to install the development version of [`snscrape`](https://github.com/JustAnotherArchivist/snscrape) with the command:
+```
+pip install git+https://github.com/JustAnotherArchivist/snscrape.git
+```
 
 ### TensorFlow (optional)
 If you'd like to use OpenAI GPT-2 models, you will need to have TensorFlow installed. You can install TensorFlow with the terminal command:
@@ -48,4 +58,6 @@ If you're running Genni on macOS, you can install PyQtNotifications to receive n
     - Compare generated texts against a user-defined word blocklist to prevent inappropriate language
 - Datasets
     - Add aggregate datasets (combinations of multiple files)
-    - Build datasets based off of Tweets from a given Twitter account
+
+## License
+Genni is available under the [GPL 3.0 license](LICENSE.md).
