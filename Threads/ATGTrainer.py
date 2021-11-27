@@ -172,7 +172,7 @@ class ATGTrainer(QThread):
         # print("Training has ended!")
         QMacNotification(
             title=f'Training completed',
-            body=f'Average loss {self.__avgLoss}'
+            body=f'Average loss {self.__avgLoss:.2f}'
         ).exec()
         self.trainingEnded.emit()
 
@@ -193,7 +193,7 @@ class ATGTrainer(QThread):
     def onSampleTextGenerated(self, texts):
         QMacNotification(
             title=f'{self.currentStep()} steps reached',
-            body=f'Sample texts have been generated - average loss {self.__avgLoss}'
+            body=f'Sample texts have been generated - average loss {self.__avgLoss:.2f}'
         ).exec()
 
         self.__samples[str(self.currentStep())] = texts
@@ -202,7 +202,7 @@ class ATGTrainer(QThread):
     def onModelSaved(self, steps, total, dir):
         QMacNotification(
             title=f'{steps} steps reached',
-            body=f'Model has been saved - average loss {self.__avgLoss}'
+            body=f'Model has been saved - average loss {self.__avgLoss:.2f}'
         ).exec()
 
         self.saveModelMetadata()
