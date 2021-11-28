@@ -46,7 +46,6 @@ class TrainingInProgressView(QWidget):
         # Control buttons
         self.genSamplesButton = QPushButton('Generate Samples', self, enabled=False)
         self.saveModelButton = QPushButton('Save Model', self, enabled=False)
-        self.stopTrainingButton = QPushButton('Abort Training', self, enabled=False)
 
         # Done button (for when training is complete)
         self.doneButton = QPushButton('Close', self)
@@ -55,13 +54,12 @@ class TrainingInProgressView(QWidget):
         self.buttonLy = QHBoxLayout()
         self.buttonLy.addWidget(self.genSamplesButton)
         self.buttonLy.addWidget(self.saveModelButton)
-        self.buttonLy.addWidget(self.stopTrainingButton)
         self.buttonLy.addWidget(self.doneButton)
 
         self.ly = QVBoxLayout(self)
         self.ly.addWidget(self.title, alignment=Qt.AlignmentFlag.AlignHCenter)
         self.ly.addWidget(self.splitter)
-        self.ly.addLayout(self.buttonLy)
+        # self.ly.addLayout(self.buttonLy)
 
         self.hyperparams = {}
 
