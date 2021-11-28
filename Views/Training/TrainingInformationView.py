@@ -56,7 +56,11 @@ class TrainingInformationView(QWidget):
         self.setLayout(self.ly)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
 
-    def setTrainer(self, trainer: ATGTrainer): self.trainer = trainer
+        self.steps = 0
+        self.totalSteps = 0
+
+    def setTrainer(self, trainer: ATGTrainer):
+        self.trainer = trainer
 
     def addRow(self, widget1: QWidget, widget2: QWidget):
         self.ly.addWidget(widget1, self.currentGridRow, 0, Qt.AlignmentFlag.AlignTop)
@@ -71,6 +75,8 @@ class TrainingInformationView(QWidget):
         self.currentGridRow += 1
 
     def onBatchEnded(self, steps, total, loss, avg_loss):
+        self.steps = steps
+        self.totalSteps = total
         self.currentStepLabel.setValue(str(steps))
         self.totalStepLabel.setValue(str(total))
 
@@ -96,10 +102,15 @@ class TrainingInformationView(QWidget):
         if data is not None:
             self.outputTextView.setPlainText(data)
 
-    def onTimePassed(self, passed: timedelta, remaining):
+    def onTimePassed(self, passed: timedelta):
         self.timeElapsedLabel.setValue(getDurationString(passed))
 
-    def updateAvgSpeed(self, lastSpeed):
-        # https://stackoverflow.com/a/3841706
-        # TODO: calculate speeds to put into here!
-        self.averageSpeed = SMOOTHING_FACTOR * lastSpeed + (1 - SMOOTHING_FACTOR) * self.averageSpeed
+        if passed.total_seconds() == 0 or self.steps == 0:
+            self.timeRemainingLabel.setValue('--:--:--')
+        else:
+            lastSpeed = self.steps / passed.total_seconds()
+
+            remainingSteps = self.totalSteps - self.steps
+
+            remaining = timedelta(seconds=remainingSteps / lastSpeed)
+            self.timeRemainingLabel.setValue(getDurationString(remaining))

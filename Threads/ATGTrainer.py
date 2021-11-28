@@ -20,7 +20,7 @@ class ATGTrainer(QThread):
     errorOccurred = pyqtSignal(Exception)
     stopTriggered = pyqtSignal()
 
-    timePassed = pyqtSignal(timedelta, float)
+    timePassed = pyqtSignal(timedelta)
 
     __config = {}
 
@@ -38,7 +38,7 @@ class ATGTrainer(QThread):
         super().__init__(parent)
         self.__repoName = repoName
         self.timePassedTimer = QTimer()
-        self.timePassedTimer.setInterval(100)
+        self.timePassedTimer.setInterval(1000)
         self.timePassedTimer.timeout.connect(self.onTimePassed)
 
         self.trainingStarted.connect(self.onTrainingStarted_main)
@@ -66,7 +66,7 @@ class ATGTrainer(QThread):
     def onTimePassed(self):
         currentTime = datetime.now()
         elapsed = currentTime - self.startTime
-        self.timePassed.emit(elapsed, 0)
+        self.timePassed.emit(elapsed)
 
     def run(self):
         from aitextgen_dev.aitextgen.TokenDataset import TokenDataset
