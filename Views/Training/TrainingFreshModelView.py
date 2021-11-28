@@ -1,36 +1,54 @@
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtWidgets import QHBoxLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
+from ModelRepo import getRepoHeadModel
 from Threads.CheckHuggingFaceThread import CheckHuggingFaceThread
 from Views.ButtonWithIconAndDetailView import ButtonWithIconAndDetailView
 from Views.WizardTitleView import WizardTitleView
 
 class TrainingFreshModelView(QWidget):
     makeModelFromScratch = pyqtSignal()
+    baseModelOnHead = pyqtSignal()
     baseModelOnOpenAI = pyqtSignal()
     baseModelOnHuggingFace = pyqtSignal()
     
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, repoPath=None):
         super().__init__(parent)
+        self.__repoPath = repoPath
         self.title = WizardTitleView(self)
         self.title.setTitle('Initialize Repository')
         self.title.setSubtitle('Choose a a base for the new model repository.')
 
-        self.fromScratchButton = ButtonWithIconAndDetailView(title='From scratch', desc='Train a fresh model, using only your datasets.', svg='Icons/New.svg', parent=self)
-        self.fromOpenAIButton = ButtonWithIconAndDetailView(title='OpenAI GPT-2', desc='Use an OpenAI GPT-2 model as a base.', svg='Icons/OpenAI.svg', parent=self)
+        self.fromHeadButton = ButtonWithIconAndDetailView(title='From head model', desc='Finetune your existing head model.', svg='Icons/Robot.svg', parent=self)
         self.fromHuggingFaceButton = ButtonWithIconAndDetailView(title='Hugging Face Repository', desc='Use a repository from Hugging Face as a base.', svg='Icons/Hugging Face.svg', parent=self)
+        self.fromOpenAIButton = ButtonWithIconAndDetailView(title='OpenAI GPT-2', desc='Use an OpenAI GPT-2 model as a base.', svg='Icons/OpenAI.svg', parent=self)
+        self.fromScratchButton = ButtonWithIconAndDetailView(title='From scratch', desc='Train a fresh model, using only your datasets.', svg='Icons/New.svg', parent=self)
+
+        
         self.nextButton = QPushButton('Next', clicked=self.proceed)
 
-        self.fromScratchButton.setChecked(True)
+        headExists = getRepoHeadModel(self.__repoPath) is not None
+
+        if headExists:
+            self.fromHeadButton.setVisible(True)
+            self.fromHeadButton.setChecked(True)
+        else:
+            self.fromHeadButton.setVisible(False)
+            self.fromHuggingFaceButton.setChecked(True)
 
         self.ly = QVBoxLayout(self)
         self.ly.addWidget(self.title, alignment=Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop)
-        self.ly.addWidget(self.fromScratchButton)
-        self.ly.addWidget(self.fromOpenAIButton)
+        self.ly.addWidget(self.fromHeadButton)
         self.ly.addWidget(self.fromHuggingFaceButton)
+        self.ly.addWidget(self.fromOpenAIButton)
+        self.ly.addWidget(self.fromScratchButton)
+
+
         self.ly.addStretch()
         self.ly.addWidget(self.nextButton)
 
     def proceed(self):
+        if self.fromHeadButton.isChecked():
+            self.baseModelOnHead.emit()
         if self.fromScratchButton.isChecked():
             self.makeModelFromScratch.emit()
         elif self.fromOpenAIButton.isChecked():

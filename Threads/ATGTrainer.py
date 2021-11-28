@@ -5,6 +5,7 @@ from PyQt6.QtCore import QThread, QTimer, pyqtSignal
 from datetime import datetime, timedelta
 from os import environ
 from json import dump, load
+from ModelRepo import getRepoHeadModel
 
 from PyQtNotifications.QMacNotification import QMacNotification
 
@@ -69,7 +70,7 @@ class ATGTrainer(QThread):
         self.timePassed.emit(elapsed)
 
     def run(self):
-        from aitextgen_dev.aitextgen.TokenDataset import TokenDataset
+        from aitextgen_dev.aitextgen.utils import GPT2Config
         from aitextgen_dev.aitextgen import aitextgen
 
         self.__shouldStop = False
@@ -81,19 +82,17 @@ class ATGTrainer(QThread):
         saveEvery = self.__config['saveEvery']
         learningRate = self.__config['learningRate']
 
-        jsonInfo = {}
+        if self.__config['constructorArgs'] is None: aitextgenArgs = {}
+        else: aitextgenArgs = self.__config['constructorArgs']
 
         # Find the most recent model
         repoFolderPath = self.__repoName
 
+        # Find dataset information
         datasetFolderPath = join(repoFolderPath, 'datasets', dataset['pathName'])
         datasetFilePath = join(datasetFolderPath, 'dataset')
-
+        datasetTokenizerFilePath = join(datasetFolderPath, 'aitextgen.tokenizer.json')
         datasetMetadata: dict = dataset['meta']
-        tokenizerFilePath = join(datasetFolderPath, 'aitextgen.tokenizer.json')
-
-        if self.__config['constructorArgs'] is None: aitextgenArgs = {}
-        else: aitextgenArgs = self.__config['constructorArgs']
 
         modelsFolderPath = join(repoFolderPath, 'models')
 
@@ -101,9 +100,7 @@ class ATGTrainer(QThread):
         
         if exists(self.__infoFilePath):
             try:
-                f = open(self.__infoFilePath, encoding='utf-8')
-                jsonInfo = load(f)
-                f.close()
+                self.__latestModel = getRepoHeadModel(repoFolderPath)
             except JSONDecodeError as e:
                 self.errorOccurred.emit(e)
                 return
@@ -111,12 +108,19 @@ class ATGTrainer(QThread):
                 self.errorOccurred.emit(e)
                 return
 
-        self.__latestModel = jsonInfo.get('latest', None)
-
-        if self.__latestModel is not None and 'model' not in aitextgenArgs and 'tf_gpt2' not in aitextgenArgs:
+        if '__useHeadModel' in aitextgenArgs and self.__latestModel is not None:
             # There is a latest model, so let's use it as a base
             latestModelPath = join(modelsFolderPath, self.__latestModel)
             aitextgenArgs['model_folder'] = latestModelPath
+            print(f'Using head model {latestModelPath} as base')
+            del aitextgenArgs['__useHeadModel']
+
+        if len(aitextgenArgs) == 0:
+            # There are no arguments being passed to aitextgen.
+            # This means we want to create a model from scratch.
+            print('No base model provided, so training from scratch')
+            aitextgenArgs['config'] = GPT2Config()
+            aitextgenArgs['tokenizer_file'] = datasetTokenizerFilePath
 
         print(f'arguments to aitextgen constructor: {aitextgenArgs}')
 

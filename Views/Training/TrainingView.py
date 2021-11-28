@@ -16,7 +16,7 @@ class TrainingView(QWidget):
     def __init__(self, parent=None, repoName=None):
         super().__init__(parent)
 
-        self.freshModelView = TrainingFreshModelView(self)
+        self.freshModelView = TrainingFreshModelView(self, repoPath=repoName)
         self.gptSizeView = TrainingFreshModelGPT2SizeView(self)
         self.huggingFaceRepoView = SelectHuggingFaceRepoView(self)
         self.hpSetupView = TrainingHyperparameterSetupView(self, repoName=repoName)
@@ -29,6 +29,7 @@ class TrainingView(QWidget):
         self.pageView.addWidget(self.hpSetupView)
         self.pageView.addWidget(self.trainingInProgressView)
 
+        self.freshModelView.baseModelOnHead.connect(self.setupHyperparametersUsingHeadModel)
         self.freshModelView.makeModelFromScratch.connect(self.setupHyperparameters)
         self.freshModelView.baseModelOnOpenAI.connect(lambda: self.pageView.slideInWgt(self.gptSizeView))
         self.freshModelView.baseModelOnHuggingFace.connect(self.showHuggingFacePage)
@@ -51,6 +52,9 @@ class TrainingView(QWidget):
     def showHuggingFacePage(self):
         self.huggingFaceRepoView.initPage()
         self.pageView.slideInWgt(self.huggingFaceRepoView)
+
+    def setupHyperparametersUsingHeadModel(self):
+        self.setupHyperparameters(config={ '__useHeadModel': True })
 
     def setupHyperparameters(self, config=None):
         self.__config = config
