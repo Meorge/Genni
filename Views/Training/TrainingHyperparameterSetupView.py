@@ -32,6 +32,7 @@ class TrainingHyperparameterSetupView(QWidget):
         self.learningRateValidator = QDoubleValidator(0.0, 100.0, 5)
         self.learningRateValidator.setNotation(QDoubleValidator.Notation.ScientificNotation)
         self.sourceDatasetPicker = DatasetSelectionView(self, repoName=repoName)
+        self.sourceDatasetPicker.datasetChanged.connect(self.onDatasetChanged)
 
         self.learningRateBox = QLineEdit('0.001', self)
         self.learningRateBox.setValidator(self.learningRateValidator)
@@ -61,6 +62,13 @@ class TrainingHyperparameterSetupView(QWidget):
         self.ly.addLayout(self.btnLy)
         
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+
+        self.onDatasetChanged(self.sourceDatasetPicker.dataset())
+
+    def onDatasetChanged(self, dataset):
+        if dataset == '': dataset = None
+        print(f'Dataset: \"{dataset}\"')
+        self.goButton.setEnabled(dataset is not None)
 
     def getHyperparameters(self) -> dict:
         return {
