@@ -1,4 +1,4 @@
-# Genni
+# <img src="genni_logo.png" style="height: 1em;"> Genni
 **Genni** is an app that attempts to make GPT-2 model training and text generation easy and accessible to everyone. It started out as a basic wrapper around the Python library [aitextgen](https://github.com/minimaxir/aitextgen), but has grown to include a model version control system.
 
 ## Current Features
@@ -60,4 +60,4 @@ If you're running Genni on macOS, you can install PyQtNotifications to receive n
     - Add aggregate datasets (combinations of multiple files)
 
 ## License
-Genni is available under the [GPL 3.0 license](LICENSE.md).
+Genni is available under the [GPL v3 license](LICENSE.md).
