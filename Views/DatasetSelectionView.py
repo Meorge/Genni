@@ -1,9 +1,11 @@
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import QComboBox, QDialog
 from Views.ImportDatasetView import ImportDatasetModal
 from ModelRepo import getDatasetsInRepository
 
 class DatasetSelectionView(QComboBox):
+    datasetChanged = pyqtSignal(dict)
+
     def __init__(self, parent=None, repoName=None):
         super().__init__(parent)
         self.currentIndexChanged.connect(self.onCurrentIndexChanged)
@@ -15,10 +17,16 @@ class DatasetSelectionView(QComboBox):
         self.blockSignals(True)
         self.clear()
 
-        for dataset in getDatasetsInRepository(self.__repository):
-            self.addItem(f'''{dataset['meta']['title']}''', dataset)
+        datasetsInRepository = getDatasetsInRepository(self.__repository)
 
-        self.addItem('Add dataset...')
+        if len(datasetsInRepository) == 0:
+            self.addItem('No datasets added', None)
+            self.model().item(0).setEnabled(False)
+        else:
+            for dataset in datasetsInRepository:
+                self.addItem(f'''{dataset['meta']['title']}''', dataset)
+
+        self.addItem('Add dataset...', None)
         self.insertSeparator(self.count() - 1)
         self.blockSignals(False)
 
@@ -27,7 +35,7 @@ class DatasetSelectionView(QComboBox):
         indexOfAddDataset = self.count() - 1
         if index == indexOfAddDataset:
             print('time to add a dataset')
-            self.bla = ImportDatasetModal(self)
+            self.bla = ImportDatasetModal(self, repoName=self.__repository)
             result = self.bla.exec()
             print(f'result of dataset adder thing: {result}')
 
@@ -38,6 +46,8 @@ class DatasetSelectionView(QComboBox):
                 self.setCurrentIndex(self.__lastValidIndex)
         else:
             self.__lastValidIndex = index
+
+        self.datasetChanged.emit(self.dataset())
 
     def dataset(self) -> str:
         return self.currentData(Qt.ItemDataRole.UserRole)

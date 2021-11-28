@@ -1,6 +1,7 @@
 
 from PyQt6.QtCore import QAbstractAnimation, QEasingCurve, QParallelAnimationGroup, QPoint, QPropertyAnimation, Qt, pyqtSignal, pyqtSlot
-from PyQt6.QtWidgets import QStackedWidget
+from PyQt6.QtGui import QColorConstants, QPaintEvent, QPainter
+from PyQt6.QtWidgets import QSizePolicy, QStackedWidget
 from queue import Queue
 
 class SwipingPageView(QStackedWidget):
@@ -10,6 +11,7 @@ class SwipingPageView(QStackedWidget):
     animationFinished = pyqtSignal()
     def __init__(self, parent=None):
         super(SwipingPageView, self).__init__(parent)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
 
         self.m_direction = Qt.Orientation.Horizontal
         self.m_speed = 500

@@ -33,6 +33,9 @@ def getRepoMetadata(repoPath: str) -> dict:
     repoMetadata['path'] = repoPath
     return repoMetadata
 
+def getRepoHeadModel(repoPath: str) -> str:
+    return getRepoMetadata(repoPath).get('latest', None)
+    
 def getModelsInRepository(repoPath: str) -> List[dict]:
     allModelsFolder = join(repoPath, 'models')
     
@@ -162,7 +165,7 @@ def processGeneratedSamples(repoPath: str, genTexts: List[str], prompt: str, che
                 seqMatcher.set_seq2(genText)
                 longestMatch = seqMatcher.find_longest_match()
 
-                ratioMatchToGenerated = longestMatch.size / len(genText)
+                ratioMatchToGenerated = (longestMatch.size / len(genText)) if len(genText) > 0 else 0
 
                 outputItem = {
                     'dataset': datasetMeta['pathName'],

@@ -57,7 +57,7 @@ class RepositoryGeneratedListView(QSplitter):
             temperature = metadata.get('temperature', '---')
 
             item = QTreeWidgetItem(self.list, [
-                genDate.strftime('%d %B %Y at %I:%M %p'),
+                genDate.strftime('%d/%m/%y, %I:%M %p'),
                 str(n),
                 str(minLength),
                 str(maxLength),

@@ -23,8 +23,8 @@ class TrainingInformationView(QWidget):
         self.timeElapsedLabel = LabeledValueView("Elapsed", "--:--:--", COLOR_GREEN)
         self.timeRemainingLabel = LabeledValueView("Remaining", "--:--:--", COLOR_GREEN)
 
-        self.avgLossLabel = LabeledValueView("Avg.  Loss", "-.--", COLOR_YELLOW)
-        self.dAvgLossLabel = LabeledValueView("Change in Avg.  Loss", "-.--", QColor(200, 255, 170))
+        self.currentLossLabel = LabeledValueView("Loss", "-.--", COLOR_YELLOW)
+        self.avgLossLabel = LabeledValueView("Avg. Loss", "-.--", COLOR_YELLOW)
 
         self.stepsToGenTextLabel = LabeledValueView("Next Samples", "---", COLOR_BLUE)
         self.stepsToSaveModelLabel = LabeledValueView("Next Save", "---", COLOR_BLUE)
@@ -48,7 +48,7 @@ class TrainingInformationView(QWidget):
         self.addDivider()
         self.addRow(self.timeElapsedLabel, self.timeRemainingLabel)
         self.addDivider()
-        self.addRow(self.avgLossLabel, QWidget())
+        self.addRow(self.avgLossLabel, self.currentLossLabel)
         self.addDivider()
         self.ly.addWidget(self.outputSplitter, self.currentGridRow, 0, 1, 2)
         self.ly.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeading)
@@ -56,7 +56,11 @@ class TrainingInformationView(QWidget):
         self.setLayout(self.ly)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
 
-    def setTrainer(self, trainer: ATGTrainer): self.trainer = trainer
+        self.steps = 0
+        self.totalSteps = 0
+
+    def setTrainer(self, trainer: ATGTrainer):
+        self.trainer = trainer
 
     def addRow(self, widget1: QWidget, widget2: QWidget):
         self.ly.addWidget(widget1, self.currentGridRow, 0, Qt.AlignmentFlag.AlignTop)
@@ -70,7 +74,9 @@ class TrainingInformationView(QWidget):
         self.ly.addWidget(line, self.currentGridRow, 0, 1, 2)
         self.currentGridRow += 1
 
-    def onBatchEnded(self, steps, total, avg_loss):
+    def onBatchEnded(self, steps, total, loss, avg_loss):
+        self.steps = steps
+        self.totalSteps = total
         self.currentStepLabel.setValue(str(steps))
         self.totalStepLabel.setValue(str(total))
 
@@ -80,6 +86,7 @@ class TrainingInformationView(QWidget):
         self.stepsToSaveModelLabel.setValue(str(stepsToSave))
 
         self.avgLossLabel.setValue(f'{avg_loss:.2f}')
+        self.currentLossLabel.setValue(f'{loss:.2f}')
 
     def onSamplesGenerated(self, step, texts):
         item = QTreeWidgetItem([f'{step}'])
@@ -95,10 +102,15 @@ class TrainingInformationView(QWidget):
         if data is not None:
             self.outputTextView.setPlainText(data)
 
-    def onTimePassed(self, passed: timedelta, remaining):
+    def onTimePassed(self, passed: timedelta):
         self.timeElapsedLabel.setValue(getDurationString(passed))
 
-    def updateAvgSpeed(self, lastSpeed):
-        # https://stackoverflow.com/a/3841706
-        # TODO: calculate speeds to put into here!
-        self.averageSpeed = SMOOTHING_FACTOR * lastSpeed + (1 - SMOOTHING_FACTOR) * self.averageSpeed
+        if passed.total_seconds() == 0 or self.steps == 0:
+            self.timeRemainingLabel.setValue('--:--:--')
+        else:
+            lastSpeed = self.steps / passed.total_seconds()
+
+            remainingSteps = self.totalSteps - self.steps
+
+            remaining = timedelta(seconds=remainingSteps / lastSpeed)
+            self.timeRemainingLabel.setValue(getDurationString(remaining))
