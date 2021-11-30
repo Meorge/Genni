@@ -13,6 +13,7 @@ class DatasetFromTextConfigView(QWidget):
         self.title = WizardTitleView(self)
         self.title.setTitle('Add Dataset From Text File')
         self.title.setSubtitle('Select the text file and other information, or whatever.')
+        self.title.setIcon('Icons/New File.svg')
 
         self.sourceFilePicker = FilePicker(self)
         self.lineByLineCheckbox = QCheckBox('Treat each line as its own sample', self)

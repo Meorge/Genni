@@ -18,10 +18,12 @@ class TrainingInProgressView(QWidget):
         self.title = WizardTitleView(self)
         self.title.setTitle('Training...')
         self.title.setSubtitle(f'''This might take a while.''')
+        self.title.setIcon('Icons/Train.svg')
 
         self.trainingDoneTitle = WizardTitleView(self)
         self.trainingDoneTitle.setTitle('Training Complete')
         self.trainingDoneTitle.setSubtitle(f'''Finetuning on \"{self.hyperparams.get('dataset', {}).get('meta', {}).get('title', 'an unknown dataset')}\" has finished. You can view the statistics on this training session at any time from the Repository view.''')
+        self.trainingDoneTitle.setIcon('Icons/Train.svg')
 
         self.slidingTitleContainer.addWidget(self.title)
         self.slidingTitleContainer.addWidget(self.trainingDoneTitle)

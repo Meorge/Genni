@@ -11,6 +11,7 @@ class DatasetFromTwitterConfigView(QWidget):
         self.title = WizardTitleView(self)
         self.title.setTitle('Add Dataset from Twitter')
         self.title.setSubtitle('Enter a search query.')
+        self.title.setIcon('Icons/Twitter.svg')
 
         self.searchQueryBox = QLineEdit()
 

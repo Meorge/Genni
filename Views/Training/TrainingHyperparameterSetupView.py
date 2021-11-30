@@ -22,6 +22,7 @@ class TrainingHyperparameterSetupView(QWidget):
         self.title = WizardTitleView(self)
         self.title.setTitle('Configure Training')
         self.title.setSubtitle('Configure the training session.')
+        self.title.setIcon('Icons/Train.svg')
 
         self.modelTitleBox = QLineEdit('My Model', self)
 
