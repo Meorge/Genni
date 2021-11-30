@@ -1,11 +1,11 @@
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import QEvent, Qt
 from PyQt6.QtGui import QColor, QFont
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QSizePolicy, QVBoxLayout, QWidget
 
 from Views.Colors import lerpColor
 
 class LabeledValueView(QWidget):
-    def __init__(self, title: str, value: str, valueColor: QColor = None, parent=None):
+    def __init__(self, title: str, value: str, valueColor: dict = None, parent=None):
         super().__init__(parent)
 
         self.titleLabel = QLabel(title)
@@ -23,8 +23,9 @@ class LabeledValueView(QWidget):
         self.ly.setSpacing(0)
         self.ly.setContentsMargins(0,0,0,0)
 
-        if valueColor is not None:
-            self.setValueColor(valueColor)
+        self.__valueColor = valueColor
+        if self.__valueColor is not None:
+            self.setValueColor(self.__valueColor)
         
         self.valueLabel.setPalette(self.valuePalette)
 
@@ -33,8 +34,14 @@ class LabeledValueView(QWidget):
     def setValue(self, value: str):
         self.valueLabel.setText(value)
 
-    def setValueColor(self, color: QColor):
-        adjustedColor = lerpColor(self.palette().text().color(), color, 0.7)
+    def changeEvent(self, event: QEvent) -> None:
+        super().changeEvent(event)
+        if event.type() == QEvent.Type.PaletteChange:
+            self.setValueColor(self.__valueColor)
+        
+    def setValueColor(self, color: dict[str, QColor]):
+        self.__valueColor = color
+        adjustedColor = lerpColor(color['light'], color['dark'], self.palette().text().color().redF())
         self.valuePalette = self.valueLabel.palette()
         self.valuePalette.setColor(self.valueLabel.foregroundRole(), adjustedColor)
         self.valueLabel.setPalette(self.valuePalette)
