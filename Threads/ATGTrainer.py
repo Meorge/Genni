@@ -25,7 +25,7 @@ class ATGTrainer(QThread):
     trainingEnded = pyqtSignal()
     batchEnded = pyqtSignal(int, int, float, float)
     sampleTextGenerated = pyqtSignal(int, list)
-    modelSaved = pyqtSignal(int, int, str)
+    modelSaved = pyqtSignal(int, str)
     errorOccurred = pyqtSignal(Exception)
     stopTriggered = pyqtSignal()
 
@@ -139,9 +139,9 @@ class ATGTrainer(QThread):
             return
 
         callbacks = {
-            'on_train_start': self.onTrainingStarted,
+            'on_train_begin': self.onTrainingStarted,
             'on_train_end': self.onTrainingEnded,
-            'on_batch_end': self.onBatchEnded,
+            'on_step_end': self.onBatchEnded,
             'on_sample_text_generated': self.onSampleTextGenerated,
             'on_model_saved': self.onModelSaved
         }
@@ -163,7 +163,7 @@ class ATGTrainer(QThread):
             'batch_size': 1,
             'progress_bar_refresh_rate': 1,
             'output_dir': self.__fullModelPath,
-            'callbacks': callbacks
+            'custom_callbacks': callbacks
         }
 
         print(f'arguments to train: {trainArgs}')
@@ -190,7 +190,12 @@ class ATGTrainer(QThread):
         self.trainingEnded.emit()
 
     def onBatchEnded(self, steps, total, loss, avg_loss, trainer):
-        # print(f"Step {steps}/{total} - loss {loss} and avg {avg_loss}")
+        print(f"Step {steps}/{total} - loss {loss} and avg {avg_loss}")
+
+        if loss is None or avg_loss is None:
+            print('Don\'t update stuff')
+            return
+
         self.__currentStep = steps
         self.__avgLoss = avg_loss
 
@@ -204,24 +209,34 @@ class ATGTrainer(QThread):
         self.batchEnded.emit(steps, total, loss, avg_loss)
 
     def onSampleTextGenerated(self, texts):
+        title = f'{self.currentStep()} steps reached'
+        body = 'Sample texts have been generated - average loss '
+        if self.__avgLoss: body += f'{self.__avgLoss:.2f}'
+        else: body += 'unknown'
+
         if canDoNotifications:
             QMacNotification(
-                title=f'{self.currentStep()} steps reached',
-                body=f'Sample texts have been generated - average loss {self.__avgLoss:.2f}'
+                title,
+                body
             ).exec()
 
         self.__samples[str(self.currentStep())] = texts
         self.sampleTextGenerated.emit(self.currentStep(), texts)
 
-    def onModelSaved(self, steps, total, dir):
+    def onModelSaved(self, steps, dir):
+        title = f'{steps} steps reached'
+        body = 'Model has been saved - average loss '
+        if self.__avgLoss: body += f'{self.__avgLoss:.2f}'
+        else: body += 'unknown'
+
         if canDoNotifications:
             QMacNotification(
-                title=f'{steps} steps reached',
-                body=f'Model has been saved - average loss {self.__avgLoss:.2f}'
+                title,
+                body
             ).exec()
 
         self.saveModelMetadata()
-        self.modelSaved.emit(steps, total, dir)
+        self.modelSaved.emit(steps, dir)
 
     def saveModelMetadata(self):
         # Save metadata
