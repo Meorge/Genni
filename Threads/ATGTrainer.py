@@ -5,9 +5,17 @@ from PyQt6.QtCore import QThread, QTimer, pyqtSignal
 from datetime import datetime, timedelta
 from os import environ
 from json import dump, load
+
 from ModelRepo import getRepoHeadModel
 
-from PyQtNotifications.QMacNotification import QMacNotification
+canDoNotifications = True
+try:
+    from PyQtNotifications.QMacNotification import QMacNotification
+    canDoNotifications = True
+except ImportError as e:
+    print(f'PyQtNotifications not found. Genni will still run, but notifications will not appear on macOS.')
+    canDoNotifications = False
+
 
 environ["TOKENIZERS_PARALLELISM"] = "false"
 environ["OMP_NUM_THREADS"] = "1"
@@ -174,10 +182,11 @@ class ATGTrainer(QThread):
 
     def onTrainingEnded(self):
         # print("Training has ended!")
-        QMacNotification(
-            title=f'Training completed',
-            body=f'Average loss {self.__avgLoss:.2f}'
-        ).exec()
+        if canDoNotifications:
+            QMacNotification(
+                title=f'Training completed',
+                body=f'Average loss {self.__avgLoss:.2f}'
+            ).exec()
         self.trainingEnded.emit()
 
     def onBatchEnded(self, steps, total, loss, avg_loss, trainer):
@@ -195,19 +204,21 @@ class ATGTrainer(QThread):
         self.batchEnded.emit(steps, total, loss, avg_loss)
 
     def onSampleTextGenerated(self, texts):
-        QMacNotification(
-            title=f'{self.currentStep()} steps reached',
-            body=f'Sample texts have been generated - average loss {self.__avgLoss:.2f}'
-        ).exec()
+        if canDoNotifications:
+            QMacNotification(
+                title=f'{self.currentStep()} steps reached',
+                body=f'Sample texts have been generated - average loss {self.__avgLoss:.2f}'
+            ).exec()
 
         self.__samples[str(self.currentStep())] = texts
         self.sampleTextGenerated.emit(self.currentStep(), texts)
 
     def onModelSaved(self, steps, total, dir):
-        QMacNotification(
-            title=f'{steps} steps reached',
-            body=f'Model has been saved - average loss {self.__avgLoss:.2f}'
-        ).exec()
+        if canDoNotifications:
+            QMacNotification(
+                title=f'{steps} steps reached',
+                body=f'Model has been saved - average loss {self.__avgLoss:.2f}'
+            ).exec()
 
         self.saveModelMetadata()
         self.modelSaved.emit(steps, total, dir)
