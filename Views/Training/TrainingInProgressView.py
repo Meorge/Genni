@@ -101,7 +101,12 @@ class TrainingInProgressView(QWidget):
     def onBatchEnded(self, steps, total, loss, avg_loss):
         self.trainingInfo.onBatchEnded(steps, total, loss, avg_loss)
         self.xAxis.setRange(0, total)
-        self.yAxis.setRange(0, max(loss, self.yAxis.max()))
 
-        self.lossSeries << QPointF(steps, loss)
-        self.avgLossSeries << QPointF(steps, avg_loss)
+        if loss is not None:
+            self.yAxis.setRange(0, max(loss, self.yAxis.max()))
+
+        if loss is not None:
+            self.lossSeries << QPointF(steps, loss)
+
+        if avg_loss is not None:
+            self.avgLossSeries << QPointF(steps, avg_loss)

@@ -1,6 +1,7 @@
 import csv
 from json.decoder import JSONDecodeError
 from os.path import exists, join
+from typing import Optional, Union
 from PyQt6.QtCore import QThread, QTimer, pyqtSignal
 from datetime import datetime, timedelta
 from os import environ
@@ -23,7 +24,7 @@ environ["OMP_NUM_THREADS"] = "1"
 class ATGTrainer(QThread):
     trainingStarted = pyqtSignal()
     trainingEnded = pyqtSignal()
-    batchEnded = pyqtSignal(int, int, float, float)
+    batchEnded = pyqtSignal(int, int, object, object)
     sampleTextGenerated = pyqtSignal(int, list)
     modelSaved = pyqtSignal(int, str)
     errorOccurred = pyqtSignal(Exception)
@@ -182,19 +183,21 @@ class ATGTrainer(QThread):
 
     def onTrainingEnded(self):
         # print("Training has ended!")
+        title = f'Training completed'
+        body = 'Average loss '
+        if self.__avgLoss: body += f'{self.__avgLoss:.2f}'
+        else: body += 'unknown'
+
         if canDoNotifications:
             QMacNotification(
-                title=f'Training completed',
-                body=f'Average loss {self.__avgLoss:.2f}'
+                title,
+                body
             ).exec()
+
         self.trainingEnded.emit()
 
     def onBatchEnded(self, steps, total, loss, avg_loss, trainer):
         print(f"Step {steps}/{total} - loss {loss} and avg {avg_loss}")
-
-        if loss is None or avg_loss is None:
-            print('Don\'t update stuff')
-            return
 
         self.__currentStep = steps
         self.__avgLoss = avg_loss

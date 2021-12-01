@@ -85,8 +85,8 @@ class TrainingInformationView(QWidget):
         self.stepsToGenTextLabel.setValue(str(stepsToGen))
         self.stepsToSaveModelLabel.setValue(str(stepsToSave))
 
-        self.avgLossLabel.setValue(f'{avg_loss:.2f}')
-        self.currentLossLabel.setValue(f'{loss:.2f}')
+        self.avgLossLabel.setValue(f'{avg_loss:.2f}' if avg_loss is not None else 'None')
+        self.currentLossLabel.setValue(f'{loss:.2f}' if loss is not None else 'None')
 
     def onSamplesGenerated(self, step, texts):
         item = QTreeWidgetItem([f'{step}'])
