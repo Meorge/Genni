@@ -6,6 +6,7 @@ import sys
 from ModelRepo import getRepoMetadata
 from Views.Generation.GeneratingView import GeneratingModal
 from Views.ImportDatasetView import ImportDatasetModal
+from Views.Preferences.PreferencesView import PreferencesView
 from Views.RepositoryDatasetListView import RepositoryDatasetListView
 from Views.RepositoryGeneratedListView import RepositoryGeneratedListView
 from Views.RepositoryListView import RepositoryListView
@@ -68,6 +69,9 @@ class RepositoryWindow(QMainWindow):
         self.sidebarSplitter.addWidget(self.w)
 
         self.setCentralWidget(self.sidebarSplitter)
+
+        self.prefsWindow = PreferencesView()
+        self.prefsWindow.show()
 
     def loadRepository(self, repoName: str):
         self.setRepositoryName(repoName)
