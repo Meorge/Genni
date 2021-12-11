@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import QHeaderView, QSplitter, QTreeWidget, QTreeWidgetItem
 
 from ModelRepo import getDatasetMetadata, getDurationString, getModelsInRepository, getRepoMetadata
 from Views.RepositoryModelDetailView import RepositoryModelDetailView
+from Preferences import getDateTimeFormatString
 
 class RepositoryModelHistoryView(QSplitter):
     repositoryLoaded = pyqtSignal(str)
@@ -64,7 +65,7 @@ class RepositoryModelHistoryView(QSplitter):
 
             item = QTreeWidgetItem(self.list, [
                 i.get('name', 'Unnamed Model'), # TODO: let the user name models
-                modelTime.strftime('%d/%m/%y, %I:%M %p'),
+                modelTime.strftime(getDateTimeFormatString()),
                 datasetName,
                 durationString,
                 str(i.get('learningRate', None)),

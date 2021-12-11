@@ -3,6 +3,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import QHeaderView, QSplitter, QTreeWidget, QTreeWidgetItem, QWidget
 
 from ModelRepo import getDatasetsInRepository
+from Preferences import getDateTimeFormatString
 from Views.RepositoryDatasetDetailView import RepositoryDatasetDetailView
 
 class RepositoryDatasetListView(QSplitter):
@@ -52,7 +53,7 @@ class RepositoryDatasetListView(QSplitter):
             item = QTreeWidgetItem(self.list, [
                 title,
                 str(lineByLine),
-                importedTime.strftime('%d/%m/%y, %I:%M %p')
+                importedTime.strftime(getDateTimeFormatString())
                 ]
                 )
 

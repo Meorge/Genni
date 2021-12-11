@@ -5,6 +5,7 @@ from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtGui import QColor, QColorConstants, QIcon
 from PyQt6.QtWidgets import QFrame, QGridLayout, QHeaderView, QLabel, QListWidget, QListWidgetItem, QSizePolicy, QSplitter, QTabWidget, QTextEdit, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget
 from ModelRepo import getDatasetMetadata
+from Preferences import getDateTimeFormatString
 from Views.Colors import COLOR_BLUE, COLOR_PURPLE, COLOR_RED, COLOR_YELLOW
 
 from Views.LabeledValueView import LabeledValueView
@@ -65,7 +66,7 @@ class RepositoryGeneratedDetailView(QWidget):
 
     def setData(self, data: dict):
         genDate = datetime.fromisoformat(data.get('meta', {}).get('datetime', '1970-01-01T00:00:00'))
-        self.titleLabel.setText(f'''Generated on {genDate.strftime('%d %B %Y at %I:%M %p')}''')
+        self.titleLabel.setText(genDate.strftime(getDateTimeFormatString()))
         self.setSamples(data.get('texts', []))
         self.hpView.setData(data)
         self.sampleDetail.setPrompt(data.get('meta', {}).get('prompt', ''))

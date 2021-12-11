@@ -1,9 +1,11 @@
-from PyQt6.QtCore import Qt
+from traceback import format_exception
+from PyQt6.QtCore import QCoreApplication, Qt
 from PyQt6.QtGui import QAction, QIcon
-from PyQt6.QtWidgets import QMainWindow, QApplication, QSplitter, QStackedWidget, QTabBar, QToolBar, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QMainWindow, QApplication, QMenuBar, QSplitter, QStackedWidget, QTabBar, QToolBar, QVBoxLayout, QWidget
 import sys
 
 from ModelRepo import getRepoMetadata
+from Preferences import initializeSettings
 from Views.Generation.GeneratingView import GeneratingModal
 from Views.ImportDatasetView import ImportDatasetModal
 from Views.Preferences.PreferencesView import PreferencesView
@@ -16,6 +18,7 @@ from Views.Training.TrainingView import TrainingModal
 class RepositoryWindow(QMainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
+        
 
         # Set up toolbar
         self.tb = QToolBar(self)
@@ -71,7 +74,15 @@ class RepositoryWindow(QMainWindow):
         self.setCentralWidget(self.sidebarSplitter)
 
         self.prefsWindow = PreferencesView()
-        self.prefsWindow.show()
+        self.prefsWindow.prefsModified.connect(self.refreshContent)
+
+        self.setupMenuBar()
+
+        
+    def setupMenuBar(self):
+        menuBar = self.menuBar()
+        self.prefsAction = menuBar.addMenu("config").addAction("config")
+        self.prefsAction.triggered.connect(self.prefsWindow.show)
 
     def loadRepository(self, repoName: str):
         self.setRepositoryName(repoName)
@@ -102,9 +113,13 @@ class RepositoryWindow(QMainWindow):
         self.refreshContent()
 
     def refreshContent(self):
-        self.modelHistoryView.refreshContent()
-        self.datasetsView.refreshContent()
-        self.genTextsView.refreshContent()
+        try:
+            self.modelHistoryView.refreshContent()
+            self.datasetsView.refreshContent()
+            self.genTextsView.refreshContent()
+        except AttributeError as e:
+            tracebackString = ''.join(format_exception(etype=type(e), value=e, tb=e.__traceback__))
+            print(f'Error trying to refresh content:\n{tracebackString}')
 
     __repositoryName: str = None
     def repositoryName(self) -> str: return self.__repositoryName
@@ -112,6 +127,12 @@ class RepositoryWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication([])
+
+    QCoreApplication.setOrganizationName("malcolminyo")
+    QCoreApplication.setApplicationName("Genni")
+    
+    initializeSettings()
+
     window = RepositoryWindow()
     window.show()
     sys.exit(app.exec())

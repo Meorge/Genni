@@ -3,6 +3,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QLabel, QSizePolicy, QTextEdit, QVBoxLayout, QWidget
 
 from ModelRepo import getDatasetText
+from Preferences import getDateTimeFormatString
 
 class RepositoryDatasetDetailView(QWidget):
     def __init__(self, parent=None):
@@ -34,7 +35,7 @@ class RepositoryDatasetDetailView(QWidget):
     def setData(self, currentRepo: str, data: dict):
         print(data)
         self.titleLabel.setText(data.get('meta', {}).get('title', 'Untitled Dataset'))
-        self.dateLabel.setText(datetime.fromisoformat(data.get('meta', {}).get('imported', '1970-01-01T00:00:00')).strftime('Imported %d %B %Y at %I:%M %p'))
+        self.dateLabel.setText(datetime.fromisoformat(data.get('meta', {}).get('imported', '1970-01-01T00:00:00')).strftime(f'Imported {getDateTimeFormatString()}'))
 
         # Load the dataset text
         text = getDatasetText(currentRepo, data.get('pathName'))
