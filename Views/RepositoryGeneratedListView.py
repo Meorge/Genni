@@ -1,8 +1,9 @@
 from datetime import datetime, timedelta
-from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtWidgets import QHeaderView, QSplitter, QTreeWidget, QTreeWidgetItem, QWidget
+from PyQt6.QtCore import QPoint, Qt, pyqtSignal
+from PyQt6.QtGui import QAction
+from PyQt6.QtWidgets import QHeaderView, QMenu, QMessageBox, QSplitter, QTreeWidget, QTreeWidgetItem, QWidget
 
-from ModelRepo import getDatasetsInRepository, getGeneratedTextsInRepository
+from ModelRepo import deleteTexts, getDatasetsInRepository, getGeneratedTextsInRepository
 from Preferences import getDateTimeFormatString
 from Views.RepositoryGeneratedDetailView import RepositoryGeneratedDetailView
 
@@ -14,6 +15,8 @@ class RepositoryGeneratedListView(QSplitter):
         super().__init__(parent)
 
         self.list = QTreeWidget(self, currentItemChanged=self.onCurrentItemChanged)
+        self.list.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.list.customContextMenuRequested.connect(self.onContextMenuRequested)
 
         columns = ['Generation Date', '# Samples', 'Min Length', 'Max Length', 'Temperature']
         self.list.setHeaderLabels(columns)
@@ -32,6 +35,11 @@ class RepositoryGeneratedListView(QSplitter):
         self.setOrientation(Qt.Orientation.Vertical)
         self.addWidget(self.list)
         self.addWidget(self.descStuff)
+
+        # Context menu for a specific repository
+        self.deleteTextsAction = QAction('Delete...', self, triggered=self.tryDeleteTexts)
+        self.itemContextMenu = QMenu(self)
+        self.itemContextMenu.addAction(self.deleteTextsAction)
 
     def refreshContent(self):
         self.populateList()
@@ -66,6 +74,26 @@ class RepositoryGeneratedListView(QSplitter):
                 ]
                 )
             item.setData(0, Qt.ItemDataRole.UserRole, i)
+
+    def onContextMenuRequested(self, point: QPoint):
+        item = self.list.itemAt(point)
+        if item is not None:
+            self.itemContextMenu.exec(self.list.mapToGlobal(point))
+
+    def tryDeleteTexts(self):
+        pathToTexts = self.list.currentItem().data(0, Qt.ItemDataRole.UserRole)['path']
+
+        b = QMessageBox(self)
+        b.setText(f'Are you sure you want to delete this set of generated texts?')
+        b.setInformativeText('They will be gone forever!')
+        b.setIcon(QMessageBox.Icon.Warning)
+
+        b.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        b.setDefaultButton(QMessageBox.StandardButton.No)
+
+        if b.exec() == QMessageBox.StandardButton.Yes:
+            deleteTexts(self.__currentRepo, pathToTexts)
+            self.refreshContent()
 
     def onCurrentItemChanged(self, current: QTreeWidgetItem, prev: QTreeWidgetItem):
         if current is None: return

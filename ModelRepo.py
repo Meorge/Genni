@@ -3,6 +3,7 @@ from difflib import SequenceMatcher
 from json.decoder import JSONDecodeError
 from typing import List
 
+from shutil import rmtree
 from os.path import join, isdir, exists
 from os import listdir
 from json import dump, load
@@ -98,7 +99,8 @@ def getGeneratedTextsInRepository(repoPath: str) -> List[dict]:
             with open(textsPath, encoding='utf-8') as f: texts = load(f)
             validGens.append({
                 'texts': texts,
-                'meta': meta
+                'meta': meta,
+                'path': dir
             })
 
     validGens.sort(key=lambda i: i['meta']['datetime'], reverse=True)
@@ -266,3 +268,8 @@ def removeRepo(repoPath: str):
             dump(knownReposRaw, f)
     except IOError as e:
         print(f'Error writing knownRepos.json when attempting to remove a repo: {e}')
+
+
+def deleteTexts(repoPath: str, genTextPath: str):
+    fullTextsPath = join(repoPath, 'generated', genTextPath)
+    rmtree(fullTextsPath)
