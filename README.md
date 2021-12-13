@@ -27,6 +27,12 @@ These libraries can be installed with the terminal command:
 pip install PyQt6 PyQt6-Charts
 ```
 
+### PyQtPlus
+This library contains some extension and convenience classes for use with PyQt6. Install it with:
+```
+pip install git+https://github.com/Meorge/PyQtPlus.git
+```
+
 ### Custom fork of aitextgen
 To display live training data, a customized version of aitextgen must be used. You can find this version at https://github.com/Meorge/aitextgen/tree/callbacks. Changes are being made to the way aitextgen performs training, so hopefully in the future Genni will migrate to using that instead.
 
@@ -38,6 +44,12 @@ In order to download Tweets for your datasets, you'll need to install the develo
 pip install git+https://github.com/JustAnotherArchivist/snscrape.git
 ```
 
+### Requests
+The HTTP library [Requests](https://docs.python-requests.org/en/latest/) is used for performing some web requests. Install it with:
+```
+pip install requests
+```
+
 ### TensorFlow (optional)
 If you'd like to use OpenAI GPT-2 models, you will need to have TensorFlow installed. You can install TensorFlow with the terminal command:
 ```
@@ -46,7 +58,9 @@ pip install TensorFlow
 Note: In my personal experience while developing Genni, I've gotten what seemed like better results from Hugging Face models (such as `EleutherAI/gpt-neo-125M`) than from OpenAI models. Additionally, it seems that having TensorFlow installed causes training initialization to take a bit longer - so it may be better to leave it uninstalled.
 
 ### PyQtNotifications (optional, macOS)
-If you're running Genni on macOS, you can install PyQtNotifications to receive native macOS notifications for events that might take a while (such as training and generation). Clone the repository at https://github.com/Meorge/PyQtNotifications into a directory named `PyQtNotifications` in the same directory as this file.
+If you're running Genni on macOS, you can install PyQtNotifications to receive native macOS notifications for events that might take a while (such as training and generation).
+PyQtNotifications is included as a Git submodule for this repository.
+If the submodule doesn't work, you can clone the repository at https://github.com/Meorge/PyQtNotifications into a directory named `PyQtNotifications` in the same directory as this file.
 
 
 ## Roadmap/Future Features

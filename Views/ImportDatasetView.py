@@ -4,13 +4,15 @@ from Threads.DatasetBuilder import TextDatasetBuilder
 from Threads.TwitterDatasetBuilder import TwitterDatasetBuilder
 from Views.AddingDataset.TwitterSource.DatasetFromTwitterConfigView import DatasetFromTwitterConfigView
 from Views.AddingDataset.TwitterSource.DatasetFromTwitterProgressView import DatasetFromTwitterProgressView
-from Views.SwipingPageView import SwipingPageView
+
 from Views.AddingDataset.DatasetSourceSelectView import DatasetSourceSelectView
 from Views.AddingDataset.TextSource.DatasetFromTextConfigView import DatasetFromTextConfigView
 from Views.AddingDataset.TextSource.DatasetFromTextImportProgressView import DatasetFromTextImportProgressView
 from Views.AddingDataset.TextSource.DatasetFromTextImportDoneView import DatasetFromTextImportDoneView
 
-class ImportDatasetView(SwipingPageView):
+from PyQtPlus.QtOnboarding import QSwipingPage
+
+class ImportDatasetView(QSwipingPage):
     finished = pyqtSignal()
 
     def __init__(self, parent=None, repoName=None):

@@ -1,6 +1,6 @@
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import QHBoxLayout, QLineEdit, QPushButton, QVBoxLayout, QWidget
-from Views.WizardTitleView import WizardTitleView
+from PyQtPlus.QtOnboarding import QWizardTitle
 
 class DatasetFromTwitterConfigView(QWidget):
     back = pyqtSignal()
@@ -8,9 +8,10 @@ class DatasetFromTwitterConfigView(QWidget):
     
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.title = WizardTitleView(self)
+        self.title = QWizardTitle(self)
         self.title.setTitle('Add Dataset from Twitter')
         self.title.setSubtitle('Enter a search query.')
+        self.title.setIcon('Icons/Twitter.svg')
 
         self.searchQueryBox = QLineEdit()
 

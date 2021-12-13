@@ -4,8 +4,8 @@ from PyQt6.QtWidgets import QHBoxLayout, QPushButton, QSplitter, QVBoxLayout, QW
 from PyQt6.QtCharts import QChart, QChartView, QLineSeries
 
 from Views.Training.TrainingInformationView import TrainingInformationView
-from Views.WizardTitleView import WizardTitleView
-from Views.SwipingPageView import SwipingPageView
+
+from PyQtPlus.QtOnboarding import QWizardTitle, QSwipingPage
 
 class TrainingInProgressView(QWidget):
     def __init__(self, parent=None):
@@ -13,15 +13,17 @@ class TrainingInProgressView(QWidget):
         self.hyperparams = {}
 
         # We need a title for each state - in-progress, and finished.
-        self.slidingTitleContainer = SwipingPageView(self)
+        self.slidingTitleContainer = QSwipingPage(self)
 
-        self.title = WizardTitleView(self)
+        self.title = QWizardTitle(self)
         self.title.setTitle('Training...')
         self.title.setSubtitle(f'''This might take a while.''')
+        self.title.setIcon('Icons/Train.svg')
 
-        self.trainingDoneTitle = WizardTitleView(self)
+        self.trainingDoneTitle = QWizardTitle(self)
         self.trainingDoneTitle.setTitle('Training Complete')
         self.trainingDoneTitle.setSubtitle(f'''Finetuning on \"{self.hyperparams.get('dataset', {}).get('meta', {}).get('title', 'an unknown dataset')}\" has finished. You can view the statistics on this training session at any time from the Repository view.''')
+        self.trainingDoneTitle.setIcon('Icons/Train.svg')
 
         self.slidingTitleContainer.addWidget(self.title)
         self.slidingTitleContainer.addWidget(self.trainingDoneTitle)

@@ -4,7 +4,7 @@ from PyQt6.QtGui import QCloseEvent
 from PyQt6.QtWidgets import QDialog, QMessageBox, QVBoxLayout, QWidget
 from Threads.ATGGenerator import ATGGenerator
 from Views.Generation.GeneratingHyperparameterSetupView import GeneratingCompleteView, GeneratingHyperparameterSetupView, GeneratingInProgressView, ProcessingInProgressView
-from Views.SwipingPageView import SwipingPageView
+from PyQtPlus.QtOnboarding import QSwipingPage
 
 class GeneratingView(QWidget):
     generationStarted = pyqtSignal(dict)
@@ -19,7 +19,7 @@ class GeneratingView(QWidget):
         self.compView = GeneratingCompleteView(self)
         self.compView.accept.connect(self.accept)
 
-        self.pageView = SwipingPageView(self)
+        self.pageView = QSwipingPage(self)
         self.pageView.addWidget(self.hpView)
         self.pageView.addWidget(self.progView)
         self.pageView.addWidget(self.processView)

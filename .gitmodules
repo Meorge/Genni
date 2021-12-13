@@ -1,3 +1,3 @@
 [submodule "PyQtNotifications"]
 	path = PyQtNotifications
-	url = git@github.com:Meorge/PyQtNotifications.git
+	url = https://github.com/Meorge/PyQtNotifications.git

@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QLineEdit, QPushButton,
 from ModelRepo import getRepoHeadModel
 from Threads.CheckHuggingFaceThread import CheckHuggingFaceThread
 from Views.ButtonWithIconAndDetailView import ButtonWithIconAndDetailView
-from Views.WizardTitleView import WizardTitleView
+from PyQtPlus.QtOnboarding import QWizardTitle
 
 class TrainingFreshModelView(QWidget):
     makeModelFromScratch = pyqtSignal()
@@ -14,9 +14,10 @@ class TrainingFreshModelView(QWidget):
     def __init__(self, parent=None, repoPath=None):
         super().__init__(parent)
         self.__repoPath = repoPath
-        self.title = WizardTitleView(self)
+        self.title = QWizardTitle(self)
         self.title.setTitle('Initialize Repository')
         self.title.setSubtitle('Choose a a base for the new model repository.')
+        self.title.setIcon('Icons/Train.svg')
 
         self.fromHeadButton = ButtonWithIconAndDetailView(title='From head model', desc='Finetune your existing head model.', svg='Icons/Robot.svg', parent=self)
         self.fromHuggingFaceButton = ButtonWithIconAndDetailView(title='Hugging Face Repository', desc='Use a repository from Hugging Face as a base.', svg='Icons/Hugging Face.svg', parent=self)
@@ -64,9 +65,10 @@ class TrainingFreshModelGPT2SizeView(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.title = WizardTitleView(self)
+        self.title = QWizardTitle(self)
         self.title.setTitle('Select OpenAI GPT-2 Model Size')
         self.title.setSubtitle('Choose the size of the OpenAI GPT-2 model you\'d like to use as a base. Larger models will take up more space on your computer, but may provide more varied output.')
+        self.title.setIcon('Icons/OpenAI.svg')
 
         self.smallModelButton = ButtonWithIconAndDetailView(title='Small (124M)', svg='Icons/OpenAI.svg', parent=self)
         self.mediumModelButton = ButtonWithIconAndDetailView(title='Medium (355M)', svg='Icons/OpenAI.svg', parent=self)
@@ -109,9 +111,10 @@ class SelectHuggingFaceRepoView(QWidget):
 
         self.searchForModelThread = CheckHuggingFaceThread(self)
 
-        self.title = WizardTitleView(self)
+        self.title = QWizardTitle(self)
         self.title.setTitle('Select Hugging Face Repository')
         self.title.setSubtitle('Type the name of the Hugging Face repository you\'d like to base your model on.')
+        self.title.setIcon('Icons/Hugging Face.svg')
 
         self.repoEdit = QLineEdit()
         self.errorLabel = QLabel('')

@@ -3,16 +3,17 @@ from typing import List
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QCheckBox, QDoubleSpinBox, QFormLayout, QLineEdit, QListWidget, QListWidgetItem, QPushButton, QSizePolicy, QSpinBox, QSplitter, QTextEdit, QWidget
-from Views.WizardTitleView import WizardTitleView
+from PyQtPlus.QtOnboarding import QWizardTitle
 
 class GeneratingHyperparameterSetupView(QWidget):
     generationStarted = pyqtSignal(dict)
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.title = WizardTitleView(self)
+        self.title = QWizardTitle(self)
         self.title.setTitle('Generate Samples')
         self.title.setSubtitle('Configure the output you\'d like.')
+        self.title.setIcon('Icons/Generate.svg')
 
         self.promptBox = QTextEdit('', self, acceptRichText=False)
         self.promptBox.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
@@ -64,9 +65,10 @@ class GeneratingHyperparameterSetupView(QWidget):
 class GeneratingInProgressView(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.title = WizardTitleView(self)
+        self.title = QWizardTitle(self)
         self.title.setTitle('Generating Samples...')
         self.title.setSubtitle('This might take a little while.')
+        self.title.setIcon('Icons/Generate.svg')
 
         self.ly = QFormLayout(self)
         self.ly.addRow(self.title)
@@ -74,9 +76,10 @@ class GeneratingInProgressView(QWidget):
 class ProcessingInProgressView(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.title = WizardTitleView(self)
+        self.title = QWizardTitle(self)
         self.title.setTitle('Processing Samples...')
         self.title.setSubtitle('Almost done! We\'re comparing the generated samples against the loaded datasets to check for overtraining.')
+        self.title.setIcon('Icons/Generate.svg')
 
         self.ly = QFormLayout(self)
         self.ly.addRow(self.title)
@@ -88,9 +91,10 @@ class GeneratingCompleteView(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.title = WizardTitleView(self)
+        self.title = QWizardTitle(self)
         self.title.setTitle('Generation Complete')
         self.title.setSubtitle('Samples have been generated.')
+        self.title.setIcon('Icons/Generate.svg')
 
         self.listOfItems = QListWidget(self, currentItemChanged=self.onCurrentItemChanged)
         self.itemDetail = QTextEdit(self, readOnly=True)

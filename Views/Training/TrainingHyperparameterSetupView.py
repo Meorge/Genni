@@ -3,7 +3,7 @@ from PyQt6.QtGui import QDoubleValidator
 from PyQt6.QtWidgets import QFileDialog, QFormLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QSizePolicy, QSpinBox, QVBoxLayout, QWidget
 
 from Views.DatasetSelectionView import DatasetSelectionView
-from Views.WizardTitleView import WizardTitleView
+from PyQtPlus.QtOnboarding import QWizardTitle
 
 class TrainingHyperparameterSetupView(QWidget):
     """
@@ -19,9 +19,10 @@ class TrainingHyperparameterSetupView(QWidget):
 
     def __init__(self, parent=None, repoName=None):
         super().__init__(parent)
-        self.title = WizardTitleView(self)
+        self.title = QWizardTitle(self)
         self.title.setTitle('Configure Training')
         self.title.setSubtitle('Configure the training session.')
+        self.title.setIcon('Icons/Train.svg')
 
         self.modelTitleBox = QLineEdit('My Model', self)
 
