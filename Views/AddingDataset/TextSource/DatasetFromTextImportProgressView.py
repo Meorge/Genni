@@ -1,12 +1,12 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QVBoxLayout, QWidget
-from Views.WizardTitleView import WizardTitleView
+from PyQtPlus.QtOnboarding import QWizardTitle
 
 class DatasetFromTextImportProgressView(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.title = WizardTitleView(self)
+        self.title = QWizardTitle(self)
         self.title.setTitle('Adding Dataset...')
         self.title.setSubtitle('This shouldn\'t take very long.')
 

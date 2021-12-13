@@ -1,13 +1,12 @@
 from datetime import datetime
 from difflib import SequenceMatcher
-from typing import List, Union
-from PyQt6.QtCore import QSize, Qt
+from typing import Iterable, List, Union
+from PyQt6.QtCore import QMimeData, QSize, Qt
 from PyQt6.QtGui import QColor, QColorConstants, QIcon
 from PyQt6.QtWidgets import QFrame, QGridLayout, QHeaderView, QLabel, QListWidget, QListWidgetItem, QSizePolicy, QSplitter, QTabWidget, QTextEdit, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget
 from ModelRepo import getDatasetMetadata
 from Preferences import getDateTimeFormatString
 from Views.Colors import COLOR_BLUE, COLOR_PURPLE, COLOR_RED, COLOR_YELLOW
-
 from Views.LabeledValueView import LabeledValueView
 
 class RepositoryGeneratedDetailView(QWidget):
@@ -25,7 +24,8 @@ class RepositoryGeneratedDetailView(QWidget):
         self.titleLabel.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
         # Left-hand list of samples
-        self.sampleList = QListWidget(self, currentItemChanged=self.onCurrentItemChanged)
+        self.sampleList = GeneratedTextsList(self)
+        self.sampleList.currentItemChanged.connect(self.onCurrentItemChanged)
         
         # Right-hand detailed sample
         # self.sampleDetail = QTextEdit(self, readOnly=True)
@@ -101,6 +101,16 @@ class RepositoryGeneratedDetailView(QWidget):
                     elif ratio > 0.5:
                         item.setIcon(QIcon('Icons/Warning.svg'))
 
+
+class GeneratedTextsList(QListWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setDragDropMode(QListWidget.DragDropMode.DragOnly)
+
+    def mimeData(self, items: Iterable[QListWidgetItem]) -> QMimeData:
+        print(f'mime data time')
+        super().mimeData(items)
+        
 
 class RepositoryGeneratedDetailVertSplitterView(QSplitter):
     def __init__(self, repoName, parent=None):

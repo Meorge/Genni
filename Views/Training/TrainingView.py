@@ -6,7 +6,7 @@ from Threads.ATGTrainer import ATGTrainer
 from Views.Training.TrainingFreshModelView import SelectHuggingFaceRepoView, TrainingFreshModelGPT2SizeView, TrainingFreshModelView
 from Views.Training.TrainingHyperparameterSetupView import TrainingHyperparameterSetupView
 from Views.Training.TrainingInProgressView import TrainingInProgressView
-from Views.SwipingPageView import SwipingPageView
+from PyQtPlus.QtOnboarding import QSwipingPage
 
 from traceback import format_exception
 
@@ -22,7 +22,7 @@ class TrainingView(QWidget):
         self.hpSetupView = TrainingHyperparameterSetupView(self, repoName=repoName)
         self.trainingInProgressView = TrainingInProgressView(self)
 
-        self.pageView = SwipingPageView(self)
+        self.pageView = QSwipingPage(self)
         self.pageView.addWidget(self.freshModelView)
         self.pageView.addWidget(self.gptSizeView)
         self.pageView.addWidget(self.huggingFaceRepoView)
