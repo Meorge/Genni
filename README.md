@@ -27,6 +27,12 @@ These libraries can be installed with the terminal command:
 pip install PyQt6 PyQt6-Charts
 ```
 
+### PyQtPlus
+This library contains some extension and convenience classes for use with PyQt6. Install it with:
+```
+pip install git+https://github.com/Meorge/PyQtPlus.git
+```
+
 ### Custom fork of aitextgen
 To display live training data, a customized version of aitextgen must be used. You can find this version at https://github.com/Meorge/aitextgen/tree/callbacks. Changes are being made to the way aitextgen performs training, so hopefully in the future Genni will migrate to using that instead.
 
