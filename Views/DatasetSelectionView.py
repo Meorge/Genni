@@ -1,7 +1,7 @@
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import QComboBox, QDialog
 from Views.ImportDatasetView import ImportDatasetModal
-from ModelRepo import getDatasetsInRepository
+from Core.ModelRepo import getDatasetsInRepository
 
 class DatasetSelectionView(QComboBox):
     datasetChanged = pyqtSignal(dict)

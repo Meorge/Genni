@@ -1,9 +1,8 @@
 from datetime import datetime
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QLabel, QSizePolicy, QTextEdit, QVBoxLayout, QWidget
-
-from ModelRepo import getDatasetText
-from Preferences import getDateTimeFormatString
+from Core.GenniCore import GenniCore
+from Core.ModelRepo import getDatasetText
 
 class RepositoryDatasetDetailView(QWidget):
     def __init__(self, parent=None):
@@ -35,7 +34,12 @@ class RepositoryDatasetDetailView(QWidget):
     def setData(self, currentRepo: str, data: dict):
         print(data)
         self.titleLabel.setText(data.get('meta', {}).get('title', 'Untitled Dataset'))
-        self.dateLabel.setText(datetime.fromisoformat(data.get('meta', {}).get('imported', '1970-01-01T00:00:00')).strftime(f'Imported {getDateTimeFormatString()}'))
+        self.dateLabel.setText(
+            datetime.fromisoformat(
+                data.get('meta', {})
+                    .get('imported', '1970-01-01T00:00:00'))
+                    .strftime(f'Imported {GenniCore.instance().getDateTimeFormatString()}')
+            )
 
         # Load the dataset text
         text = getDatasetText(currentRepo, data.get('pathName'))

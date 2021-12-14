@@ -2,10 +2,10 @@ from datetime import datetime, timedelta
 from PyQt6.QtCore import QMargins, Qt, pyqtSignal
 from PyQt6.QtGui import QColor, QColorConstants, QIcon, QPainter, QPen, QPixmap
 from PyQt6.QtWidgets import QHeaderView, QSplitter, QTreeWidget, QTreeWidgetItem, QWidget
+from Core.GenniCore import GenniCore
 
-from ModelRepo import getDatasetMetadata, getDurationString, getModelsInRepository, getRepoMetadata
+from Core.ModelRepo import getDatasetMetadata, getDurationString, getModelsInRepository, getRepoMetadata
 from Views.RepositoryModelDetailView import RepositoryModelDetailView
-from Preferences import getDateTimeFormatString
 
 class RepositoryModelHistoryView(QSplitter):
     repositoryLoaded = pyqtSignal(str)
@@ -65,7 +65,7 @@ class RepositoryModelHistoryView(QSplitter):
 
             item = QTreeWidgetItem(self.list, [
                 i.get('name', 'Unnamed Model'), # TODO: let the user name models
-                modelTime.strftime(getDateTimeFormatString()),
+                modelTime.strftime(GenniCore.instance().getDateTimeFormatString()),
                 datasetName,
                 durationString,
                 str(i.get('learningRate', None)),

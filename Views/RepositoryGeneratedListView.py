@@ -2,9 +2,9 @@ from datetime import datetime, timedelta
 from PyQt6.QtCore import QPoint, Qt, pyqtSignal
 from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import QHeaderView, QMenu, QMessageBox, QSplitter, QTreeWidget, QTreeWidgetItem, QWidget
+from Core.GenniCore import GenniCore
 
-from ModelRepo import deleteTexts, getDatasetsInRepository, getGeneratedTextsInRepository
-from Preferences import getDateTimeFormatString
+from Core.ModelRepo import deleteTexts, getDatasetsInRepository, getGeneratedTextsInRepository
 from Views.RepositoryGeneratedDetailView import RepositoryGeneratedDetailView
 
 class RepositoryGeneratedListView(QSplitter):
@@ -66,7 +66,7 @@ class RepositoryGeneratedListView(QSplitter):
             temperature = metadata.get('temperature', '---')
 
             item = QTreeWidgetItem(self.list, [
-                genDate.strftime(getDateTimeFormatString()),
+                genDate.strftime(GenniCore.instance().getDateTimeFormatString()),
                 str(n),
                 str(minLength),
                 str(maxLength),

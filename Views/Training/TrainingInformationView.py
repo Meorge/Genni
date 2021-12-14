@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import QFrame, QGridLayout, QPlainTextEdit, QSizePolicy, QS
 from datetime import timedelta
 from Threads.ATGTrainer import ATGTrainer
 
-from ModelRepo import getDurationString
+from Core.ModelRepo import getDurationString
 
 from Views.LabeledValueView import LabeledValueView
 from Views.Colors import *

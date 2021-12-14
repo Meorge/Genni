@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from os import environ
 from json import dump, load
 
-from ModelRepo import getRepoHeadModel
+from Core.ModelRepo import getRepoHeadModel
 
 canDoNotifications = True
 try:

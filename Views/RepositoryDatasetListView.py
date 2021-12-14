@@ -1,9 +1,9 @@
 from datetime import datetime, timedelta
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import QHeaderView, QSplitter, QTreeWidget, QTreeWidgetItem, QWidget
+from Core.GenniCore import GenniCore
 
-from ModelRepo import getDatasetsInRepository
-from Preferences import getDateTimeFormatString
+from Core.ModelRepo import getDatasetsInRepository
 from Views.RepositoryDatasetDetailView import RepositoryDatasetDetailView
 
 class RepositoryDatasetListView(QSplitter):
@@ -53,7 +53,7 @@ class RepositoryDatasetListView(QSplitter):
             item = QTreeWidgetItem(self.list, [
                 title,
                 str(lineByLine),
-                importedTime.strftime(getDateTimeFormatString())
+                importedTime.strftime(GenniCore.instance().getDateTimeFormatString())
                 ]
                 )
 

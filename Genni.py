@@ -1,11 +1,11 @@
 from traceback import format_exception
-from PyQt6.QtCore import QCoreApplication, Qt
+from PyQt6.QtCore import QCoreApplication, QSettings, Qt
 from PyQt6.QtGui import QAction, QIcon
-from PyQt6.QtWidgets import QMainWindow, QApplication, QMenuBar, QSplitter, QStackedWidget, QTabBar, QToolBar, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QMainWindow, QApplication, QMenuBar, QSplitter, QStackedWidget, QSystemTrayIcon, QTabBar, QToolBar, QVBoxLayout, QWidget
 import sys
 
-from ModelRepo import getRepoMetadata
-from Preferences import initializeSettings
+from Core.ModelRepo import getRepoMetadata
+from Core.GenniCore import GenniCore
 from Views.Generation.GeneratingView import GeneratingModal
 from Views.ImportDatasetView import ImportDatasetModal
 from Views.Preferences.PreferencesView import PreferencesView
@@ -126,13 +126,7 @@ class RepositoryWindow(QMainWindow):
     def setRepositoryName(self, repositoryName: str): self.__repositoryName = repositoryName
 
 if __name__ == "__main__":
-    app = QApplication([])
-
-    QCoreApplication.setOrganizationName("malcolminyo")
-    QCoreApplication.setApplicationName("Genni")
-    
-    initializeSettings()
-
+    app = GenniCore([])
     window = RepositoryWindow()
     window.show()
     sys.exit(app.exec())

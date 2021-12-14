@@ -2,8 +2,8 @@ from PyQt6.QtCharts import QChart, QChartView, QLineSeries
 from PyQt6.QtCore import QPointF, QSize, Qt
 from PyQt6.QtGui import QColor, QColorConstants, QPen
 from PyQt6.QtWidgets import QFrame, QGridLayout, QLabel, QSizePolicy, QSplitter, QTextEdit, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget
-from ModelRepo import getDurationString, getModelStepData
-from Preferences import getDateTimeFormatString
+from Core.GenniCore import GenniCore
+from Core.ModelRepo import getDurationString, getModelStepData
 from Views.Colors import COLOR_BLUE, COLOR_GREEN, COLOR_PURPLE, COLOR_RED, COLOR_YELLOW
 from Views.LabeledValueView import LabeledValueView
 from datetime import datetime, timedelta
@@ -69,7 +69,7 @@ class RepositoryModelDetailView(QWidget):
 
     def setData(self, repoName: str, data: dict):
         self.titleLabel.setText(data.get('name', 'Unnamed Model'))
-        self.dateLabel.setText(datetime.fromisoformat(data.get('datetime', '1970-01-01T00:00:00')).strftime(getDateTimeFormatString()))
+        self.dateLabel.setText(datetime.fromisoformat(data.get('datetime', '1970-01-01T00:00:00')).strftime(GenniCore.instance().getDateTimeFormatString()))
 
         self.lossSeries.clear()
         self.avgLossSeries.clear()

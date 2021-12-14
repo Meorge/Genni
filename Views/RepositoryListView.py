@@ -2,7 +2,7 @@ from PyQt6.QtCore import QPoint, Qt, pyqtSignal
 from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtWidgets import QFileDialog, QInputDialog, QMenu, QMessageBox, QTreeWidget, QTreeWidgetItem
 
-from ModelRepo import addKnownRepo, getKnownRepos, removeRepo, renameRepo
+from Core.ModelRepo import addKnownRepo, getKnownRepos, removeRepo, renameRepo
 
 class RepositoryListView(QTreeWidget):
     currentRepositoryChanged = pyqtSignal(str)

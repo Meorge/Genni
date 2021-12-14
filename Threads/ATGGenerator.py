@@ -7,7 +7,7 @@ from os.path import join, exists
 from os import mkdir
 from os import environ
 
-from ModelRepo import getDatasetsInRepository, processGeneratedSamples
+from Core.ModelRepo import getDatasetsInRepository, processGeneratedSamples
 
 # TODO: top_p and top_k
 

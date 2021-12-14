@@ -1,6 +1,6 @@
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
-from ModelRepo import getRepoHeadModel
+from Core.ModelRepo import getRepoHeadModel
 from Threads.CheckHuggingFaceThread import CheckHuggingFaceThread
 from Views.ButtonWithIconAndDetailView import ButtonWithIconAndDetailView
 from PyQtPlus.QtOnboarding import QWizardTitle

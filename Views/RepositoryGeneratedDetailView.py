@@ -4,8 +4,8 @@ from typing import Iterable, List, Union
 from PyQt6.QtCore import QMimeData, QSize, Qt
 from PyQt6.QtGui import QColor, QColorConstants, QIcon
 from PyQt6.QtWidgets import QFrame, QGridLayout, QHeaderView, QLabel, QListWidget, QListWidgetItem, QSizePolicy, QSplitter, QTabWidget, QTextEdit, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget
-from ModelRepo import getDatasetMetadata
-from Preferences import getDateTimeFormatString
+from Core.GenniCore import GenniCore
+from Core.ModelRepo import getDatasetMetadata
 from Views.Colors import COLOR_BLUE, COLOR_PURPLE, COLOR_RED, COLOR_YELLOW
 from Views.LabeledValueView import LabeledValueView
 
@@ -66,7 +66,7 @@ class RepositoryGeneratedDetailView(QWidget):
 
     def setData(self, data: dict):
         genDate = datetime.fromisoformat(data.get('meta', {}).get('datetime', '1970-01-01T00:00:00'))
-        self.titleLabel.setText(genDate.strftime(getDateTimeFormatString()))
+        self.titleLabel.setText(genDate.strftime(GenniCore.instance().getDateTimeFormatString()))
         self.setSamples(data.get('texts', []))
         self.hpView.setData(data)
         self.sampleDetail.setPrompt(data.get('meta', {}).get('prompt', ''))
