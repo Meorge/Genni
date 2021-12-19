@@ -1,9 +1,9 @@
 from datetime import datetime
 from difflib import SequenceMatcher
 from typing import Iterable, List, Union
-from PyQt6.QtCore import QMimeData, QSize, Qt
+from PyQt6.QtCore import QMimeData, QPoint, QSize, Qt
 from PyQt6.QtGui import QColor, QColorConstants, QIcon
-from PyQt6.QtWidgets import QFrame, QGridLayout, QHeaderView, QLabel, QListWidget, QListWidgetItem, QSizePolicy, QSplitter, QTabWidget, QTextEdit, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QFrame, QGridLayout, QHeaderView, QLabel, QListWidget, QListWidgetItem, QMenu, QSizePolicy, QSplitter, QTabWidget, QTextEdit, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget
 from Core.GenniCore import GenniCore
 from Core.ModelRepo import getDatasetMetadata
 from Views.Colors import COLOR_BLUE, COLOR_PURPLE, COLOR_RED, COLOR_YELLOW
@@ -75,24 +75,25 @@ class RepositoryGeneratedDetailView(QWidget):
         self.__samples = samples
 
         self.sampleList.clear()
-        for i in self.__samples:
+        for i, data in enumerate(self.__samples):
             item = GeneratedTextsListItem(self.sampleList)
-            item.setData(0, Qt.ItemDataRole.UserRole, i)
+            item.setData(0, Qt.ItemDataRole.UserRole, data)
+            item.setData(0, Qt.ItemDataRole.UserRole + 1, i)
 
             # Handle these differently, depending on whether they're just strings
             # or there's extra data associated
-            if isinstance(i, str):
-                i: str
-                item.setText(0, i.replace('\n', ''))
+            if isinstance(data, str):
+                data: str
+                item.setText(0, data.replace('\n', ''))
                 
 
-            elif isinstance(i, dict):
-                i: dict
-                item.setText(0, i.get('text', '').replace('\n', ''))
+            elif isinstance(data, dict):
+                data: dict
+                item.setText(0, data.get('text', '').replace('\n', ''))
 
                 
-                if i.get('datasetMatches', None) is not None and len(i.get('datasetMatches', [])) > 0:
-                    topMatch = sorted(i.get('datasetMatches', []), key=lambda x: x.get('ratio', 0), reverse=True)[0]
+                if data.get('datasetMatches', None) is not None and len(data.get('datasetMatches', [])) > 0:
+                    topMatch = sorted(data.get('datasetMatches', []), key=lambda x: x.get('ratio', 0), reverse=True)[0]
                     ratio = topMatch.get('ratio', 0)
 
                     icon = 'Success'
@@ -121,6 +122,24 @@ class GeneratedTextsList(QTreeWidget):
         self.setRootIsDecorated(False)
 
         self.setAlternatingRowColors(True)
+
+        # Set up context menu
+        self.contextMenu = QMenu(self)
+        self.favAction = self.contextMenu.addAction("Favorite", self.onAddFavoriteText)
+        self.hideAction = self.contextMenu.addAction("Hide", self.onHideText)
+
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.onContextMenuRequested)
+
+    def onContextMenuRequested(self, point: QPoint):
+        self.contextMenu.exec(self.mapToGlobal(point))
+
+    def onAddFavoriteText(self):
+        index = self.currentItem().data(0, Qt.ItemDataRole.UserRole + 1)
+        print(f'Add item at index {index} as favorite text')
+
+    def onHideText(self):
+        index = self.currentItem().data(0, Qt.ItemDataRole.UserRole + 1)
         
 class GeneratedTextsListItem(QTreeWidgetItem):
     def __lt__(self, other: 'GeneratedTextsListItem'):
