@@ -78,8 +78,8 @@ class ATGTrainer(QThread):
         self.timePassed.emit(elapsed)
 
     def run(self):
-        from aitextgen_dev.aitextgen.utils import GPT2Config
-        from aitextgen_dev.aitextgen import aitextgen
+        from aitextgen.utils import GPT2Config
+        from aitextgen import aitextgen
 
         self.__shouldStop = False
         self.__dataRows = []

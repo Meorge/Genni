@@ -36,7 +36,10 @@ pip install git+https://github.com/Meorge/PyQtPlus.git
 ### Custom fork of aitextgen
 To display live training data, a customized version of aitextgen must be used. You can find this version at https://github.com/Meorge/aitextgen/tree/callbacks. Changes are being made to the way aitextgen performs training, so hopefully in the future Genni will migrate to using that instead.
 
-As of right now, this repository should be cloned into a directory named `aitextgen_dev` in the same directory as this file.
+Install this with:
+```
+pip install git+https://github.com/Meorge/aitextgen.git@callbacks
+```
 
 ### snscrape
 In order to download Tweets for your datasets, you'll need to install the development version of [`snscrape`](https://github.com/JustAnotherArchivist/snscrape) with the command:

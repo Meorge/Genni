@@ -41,7 +41,7 @@ class BaseDatasetBuilder(QThread):
 
     def writeTokenizer(self):
         # Generate tokenizer json, and put it in this folder
-        from aitextgen_dev.aitextgen.tokenizers import train_tokenizer
+        from aitextgen.tokenizers import train_tokenizer
         train_tokenizer(self.thisDatasetFileDestPath, save_path=self.thisDatasetFolderPath)
 
     def writeMetadata(self, extraMetadata: dict):

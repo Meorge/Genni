@@ -59,8 +59,7 @@ class ATGGenerator(QThread):
     def setCheckAgainstDatasets(self, check: bool): self.__checkAgainstDatasets = check
 
     def run(self):
-        from aitextgen_dev.aitextgen.utils import GPT2ConfigCPU
-        from aitextgen_dev.aitextgen import aitextgen
+        from aitextgen import aitextgen
 
         repoFolderPath = self.__repoName
 
