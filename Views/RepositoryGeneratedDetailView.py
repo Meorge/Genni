@@ -28,7 +28,6 @@ class RepositoryGeneratedDetailView(QWidget):
         self.sampleList.currentItemChanged.connect(self.onCurrentItemChanged)
         
         # Right-hand detailed sample
-        # self.sampleDetail = QTextEdit(self, readOnly=True)
         self.sampleDetail = RepositoryGeneratedDetailVertSplitterView(self.__repoName, parent=self)
 
         # Splitter
@@ -51,11 +50,11 @@ class RepositoryGeneratedDetailView(QWidget):
         self.__repoName = repoName
         self.sampleDetail.setRepository(repoName)
 
-    def onCurrentItemChanged(self, current: QListWidgetItem, prev: QListWidgetItem):
+    def onCurrentItemChanged(self, current: QTreeWidgetItem, prev: QTreeWidgetItem):
         self.sampleDetail.setSample({})
         if current is None: return
 
-        currentSelectedSample = current.data(Qt.ItemDataRole.UserRole)
+        currentSelectedSample = current.data(0, Qt.ItemDataRole.UserRole)
 
         if isinstance(currentSelectedSample, str):
             self.sampleDetail.setSample({'text': currentSelectedSample})
@@ -77,40 +76,55 @@ class RepositoryGeneratedDetailView(QWidget):
 
         self.sampleList.clear()
         for i in self.__samples:
-            item = QListWidgetItem(self.sampleList)
-            item.setData(Qt.ItemDataRole.UserRole, i)
+            item = GeneratedTextsListItem(self.sampleList)
+            item.setData(0, Qt.ItemDataRole.UserRole, i)
 
             # Handle these differently, depending on whether they're just strings
             # or there's extra data associated
             if isinstance(i, str):
                 i: str
-                item.setText(i.replace('\n', ''))
+                item.setText(0, i.replace('\n', ''))
                 
 
             elif isinstance(i, dict):
                 i: dict
-                item.setText(i.get('text', '').replace('\n', ''))
+                item.setText(0, i.get('text', '').replace('\n', ''))
 
                 
                 if i.get('datasetMatches', None) is not None and len(i.get('datasetMatches', [])) > 0:
                     topMatch = sorted(i.get('datasetMatches', []), key=lambda x: x.get('ratio', 0), reverse=True)[0]
                     ratio = topMatch.get('ratio', 0)
 
-                    if ratio >= 1.0:
-                        item.setIcon(QIcon('Icons/Critical.svg'))
-                    elif ratio > 0.5:
-                        item.setIcon(QIcon('Icons/Warning.svg'))
+                    icon = 'Success'
+                    if ratio >= 1.0: icon = 'Critical'
+                    elif ratio > 0.5: icon = 'Warning'
+
+                    item.setIcon(1, QIcon(f'Icons/{icon}.svg'))
+                    item.setText(1, f'{ratio * 100:.01f}%')
+                    item.setData(1, Qt.ItemDataRole.UserRole, ratio)
 
 
-class GeneratedTextsList(QListWidget):
+class GeneratedTextsList(QTreeWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setDragDropMode(QListWidget.DragDropMode.DragOnly)
+        self.setColumnCount(2)
+        self.setHeaderLabels(["Text", "% Match"])
 
-    def mimeData(self, items: Iterable[QListWidgetItem]) -> QMimeData:
-        print(f'mime data time')
-        super().mimeData(items)
+        h = self.header()
+        h.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        h.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        h.setStretchLastSection(False)
+
+        h.setSortIndicatorShown(True)
+        self.setSortingEnabled(True)
+        self.sortByColumn(1, Qt.SortOrder.AscendingOrder)
+        self.setRootIsDecorated(False)
+
+        self.setAlternatingRowColors(True)
         
+class GeneratedTextsListItem(QTreeWidgetItem):
+    def __lt__(self, other: 'GeneratedTextsListItem'):
+        return self.data(1, Qt.ItemDataRole.UserRole) < other.data(1, Qt.ItemDataRole.UserRole)
 
 class RepositoryGeneratedDetailVertSplitterView(QSplitter):
     def __init__(self, repoName, parent=None):

@@ -18,7 +18,7 @@ class RepositoryGeneratedListView(QSplitter):
         self.list.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.list.customContextMenuRequested.connect(self.onContextMenuRequested)
 
-        columns = ['Generation Date', '# Samples', 'Min Length', 'Max Length', 'Temperature']
+        columns = ['Generation Date', '#', 'Min', 'Max', 'Temp.']
         self.list.setHeaderLabels(columns)
         self.list.setColumnCount(len(columns))
         self.list.setAlternatingRowColors(True)
