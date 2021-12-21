@@ -1,11 +1,11 @@
 from datetime import datetime
 from difflib import SequenceMatcher
 from typing import Iterable, List, Union
-from PyQt6.QtCore import QMimeData, QPoint, QSize, Qt, pyqtSignal
+from PyQt6.QtCore import QMimeData, QModelIndex, QPoint, QSize, Qt, pyqtSignal
 from PyQt6.QtGui import QColor, QColorConstants, QFont, QIcon, QKeySequence
 from PyQt6.QtWidgets import QFrame, QGridLayout, QHeaderView, QLabel, QListWidget, QListWidgetItem, QMenu, QSizePolicy, QSplitter, QTabWidget, QTextEdit, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget
 from Core.GenniCore import GenniCore
-from Core.ModelRepo import getDatasetMetadata, getGeneratedTextInRepository, markGeneratedSampleInRepository
+from Core.ModelRepo import deleteGeneratedSampleInRepository, getDatasetMetadata, getGeneratedTextInRepository, markGeneratedSampleInRepository
 from Views.Colors import COLOR_BLUE, COLOR_PURPLE, COLOR_RED, COLOR_YELLOW
 from Views.LabeledValueView import LabeledValueView
 
@@ -92,6 +92,11 @@ class RepositoryGeneratedDetailView(QWidget):
     def setSamples(self, samples: List[Union[str, dict]]):
         self.__samples = samples
 
+        # row = None
+        # index = self.sampleList.currentIndex()
+        # if index is not None: row = index.row()
+        # print(f'We had index {index}, row {row} selected')
+
         self.sampleList.clear()
         for i, data in enumerate(self.__samples):
             item = GeneratedTextsListItem(self.sampleList)
@@ -132,7 +137,6 @@ class RepositoryGeneratedDetailView(QWidget):
                     item.setText(1, f'{ratio * 100:.01f}%')
                     item.setData(1, Qt.ItemDataRole.UserRole, ratio)
 
-
 class GeneratedTextsList(QTreeWidget):
     genTextDataModified = pyqtSignal()
     def __init__(self, repoName, parent=None):
@@ -157,15 +161,29 @@ class GeneratedTextsList(QTreeWidget):
 
         # Set up context menu
         self.contextMenu = QMenu(self)
-        self.favAction = self.contextMenu.addAction(QIcon('Icons/Star.svg'), 'Mark as Favorite', self.onAddFavoriteText)
-        self.hideAction = self.contextMenu.addAction(QIcon('Icons/Cross Out.svg'), 'Mark as Hidden', self.onHideText)
-        self.clearTagAction = self.contextMenu.addAction('Remove Mark', self.onClearStatusText)
+        self.tagMenu = self.contextMenu.addMenu('Add Tag...')
+        self.favAction = self.tagMenu.addAction(QIcon('Icons/Star.svg'), 'Favorite', self.onAddFavoriteText, QKeySequence("Q"))
+        self.hideAction = self.tagMenu.addAction(QIcon('Icons/Cross Out.svg'), 'Hidden', self.onHideText, QKeySequence("W"))
+        self.clearTagAction = self.tagMenu.addAction('None', self.onClearStatusText, QKeySequence("E"))
+
+        self.delAction = self.contextMenu.addAction(QIcon('Icons/Trash.svg'), 'Delete', self.onDeleteText, QKeySequence.StandardKey.Delete)
+
+        self.addAction(self.favAction)
+        self.addAction(self.hideAction)
+        self.addAction(self.clearTagAction)
+        self.addAction(self.delAction)
+        
 
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.onContextMenuRequested)
 
     def onContextMenuRequested(self, point: QPoint):
         self.contextMenu.exec(self.mapToGlobal(point))
+
+    def onDeleteText(self):
+        index = self.currentItem().data(0, Qt.ItemDataRole.UserRole + 1)
+        deleteGeneratedSampleInRepository(self.__repoName, self.__sessionName, index)
+        self.genTextDataModified.emit()
 
     def onAddFavoriteText(self):
         self.setStatusOfCurrentItem('favorited')
@@ -177,8 +195,16 @@ class GeneratedTextsList(QTreeWidget):
         self.setStatusOfCurrentItem('')
 
     def setStatusOfCurrentItem(self, status: str):
+        if self.currentItem() is None: return
         index = self.currentItem().data(0, Qt.ItemDataRole.UserRole + 1)
-        markGeneratedSampleInRepository(self.__repoName, self.__sessionName, index, status)
+
+        currentTag = self.currentItem().data(0, Qt.ItemDataRole.UserRole).get('status', None)
+    
+        if currentTag == status:
+            markGeneratedSampleInRepository(self.__repoName, self.__sessionName, index, '')
+        else:
+            markGeneratedSampleInRepository(self.__repoName, self.__sessionName, index, status)
+
         self.genTextDataModified.emit()
 
     def setCurrentSessionName(self, name: str):

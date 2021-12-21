@@ -131,7 +131,20 @@ def markGeneratedSampleInRepository(repoPath: str, genTextPath: str, index: int,
     f = open(pathToTexts, mode='w', encoding='utf-8')
     dump(texts, f, indent=4)
     f.close()
-    
+
+
+def deleteGeneratedSampleInRepository(repoPath: str, genTextPath: str, index: int):
+    pathToTexts = join(repoPath, 'generated', genTextPath, 'texts.json')
+    f = open(pathToTexts, encoding='utf-8')
+    texts = load(f)
+    f.close()
+
+    del texts[index]
+
+    f = open(pathToTexts, mode='w', encoding='utf-8')
+    dump(texts, f, indent=4)
+    f.close()
+
 def getDatasetMetadata(repoPath: str, datasetName: str) -> dict:
     allDatasets = getDatasetsInRepository(repoPath)
     try:

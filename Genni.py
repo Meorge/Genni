@@ -6,6 +6,7 @@ import sys
 
 from Core.ModelRepo import getRepoMetadata
 from Core.GenniCore import GenniCore
+from Views.CleanSession.CleanSessionConfigView import CleanSessionModal
 from Views.Generation.GeneratingView import GeneratingModal
 from Views.ImportDatasetView import ImportDatasetModal
 from Views.Preferences.PreferencesView import PreferencesView
@@ -33,7 +34,8 @@ class RepositoryWindow(QMainWindow):
         self.addDatasetAction = QAction(QIcon('./Icons/Add Dataset.svg'), 'Add Dataset', self, triggered=self.openAddDatasetModal, enabled=False)
 
         self.exportSessionAction = QAction(QIcon('Icons/Export.svg'), 'Export...', parent=self, triggered=self.openExportSessionModal, enabled=False)
-        self.cleanSessionAction = QAction(QIcon('Icons/Trash.svg'), 'Clean...', self, triggered=self.openCleanSessionModal, enabled=False)
+        self.cleanSessionAction = QAction(QIcon('Icons/Trash.svg'), 'Clean...', self, triggered=self.openCleanSessionModal, enabled=True)
+        self.cleanSessionAction.setVisible(False) # don't need this right now
 
         self.tb.addAction(self.trainAction)
         self.tb.addAction(self.genAction)
@@ -109,8 +111,7 @@ class RepositoryWindow(QMainWindow):
 
     def onTabChanged(self, index: int):
         # Check if the user currently has a generation session selected
-        # TODO: run this when session selection changes
-        genSessionIsSelected = index == 2 and self.genTextsView.currentSession() is not None
+        genSessionIsSelected = True or (index == 2 and self.genTextsView.currentSession() is not None)
         self.exportSessionAction.setEnabled(genSessionIsSelected)
         self.cleanSessionAction.setEnabled(genSessionIsSelected)
 
@@ -131,11 +132,16 @@ class RepositoryWindow(QMainWindow):
         self.refreshContent()
 
     def openExportSessionModal(self):
-        pass
+        session = self.genTextsView.currentSession()
+        print(f'User wants to export the session {session}')
+        # TODO: session export modal (set format of export, preview output?)
 
     def openCleanSessionModal(self):
-        sessionToClean = self.genTextsView.currentSession()
-        print(f'User wants to clean the session {sessionToClean}')
+        session = self.genTextsView.currentSession()
+        print(f'User wants to clean the session {session}')
+        self.cleanModal = CleanSessionModal(self)
+        self.cleanModal.exec()
+        # TODO: session clean modal (preview texts to be deleted?)
 
     def refreshContent(self):
         try:
