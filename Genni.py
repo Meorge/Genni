@@ -1,7 +1,7 @@
 from traceback import format_exception
 from PyQt6.QtCore import QCoreApplication, QSettings, Qt
 from PyQt6.QtGui import QAction, QIcon
-from PyQt6.QtWidgets import QMainWindow, QApplication, QMenuBar, QSplitter, QStackedWidget, QSystemTrayIcon, QTabBar, QToolBar, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QMainWindow, QApplication, QMenuBar, QSizePolicy, QSplitter, QStackedWidget, QSystemTrayIcon, QTabBar, QToolBar, QVBoxLayout, QWidget
 import sys
 
 from Core.ModelRepo import getRepoMetadata
@@ -28,21 +28,30 @@ class RepositoryWindow(QMainWindow):
         self.addToolBar(self.tb)
         self.setUnifiedTitleAndToolBarOnMac(True)
 
-        self.trainAction = QAction(QIcon('./Icons/Train.svg'), 'Train', self, triggered=self.openTrainingModal, enabled=False)
-        self.genAction = QAction(QIcon('./Icons/Generate.svg'), 'Generate', self, triggered=self.openGenModal, enabled=False)
-
+        self.trainAction = QAction(QIcon('./Icons/Train.svg'), 'Train...', self, triggered=self.openTrainingModal, enabled=False)
+        self.genAction = QAction(QIcon('./Icons/Generate.svg'), 'Generate...', self, triggered=self.openGenModal, enabled=False)
         self.addDatasetAction = QAction(QIcon('./Icons/Add Dataset.svg'), 'Add Dataset', self, triggered=self.openAddDatasetModal, enabled=False)
+
+        self.exportSessionAction = QAction(QIcon('Icons/Export.svg'), 'Export...', parent=self, triggered=self.openExportSessionModal, enabled=False)
+        self.cleanSessionAction = QAction(QIcon('Icons/Trash.svg'), 'Clean...', self, triggered=self.openCleanSessionModal, enabled=False)
 
         self.tb.addAction(self.trainAction)
         self.tb.addAction(self.genAction)
-        self.tb.addSeparator()
         self.tb.addAction(self.addDatasetAction)
+
+        a = QWidget()
+        a.setSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Fixed)
+        self.tb.addWidget(a)
+        self.tb.addAction(self.exportSessionAction)
+        self.tb.addAction(self.cleanSessionAction)
 
         self.modelHistoryView = RepositoryModelHistoryView(self)
         self.datasetsView = RepositoryDatasetListView(self)
         self.genTextsView = RepositoryGeneratedListView(self)
         
         self.tabBar = QTabBar(self)
+        self.tabBar.currentChanged.connect(self.onTabChanged)
+        self.genTextsView.currentSessionChanged.connect(lambda: self.onTabChanged(self.tabBar.currentIndex()))
         self.tabBar.setDrawBase(False)
         self.tabBar.addTab('Models')
         self.tabBar.addTab('Datasets')
@@ -97,6 +106,15 @@ class RepositoryWindow(QMainWindow):
         self.datasetsView.loadRepository(repoName)
         self.genTextsView.loadRepository(repoName)
 
+
+    def onTabChanged(self, index: int):
+        # Check if the user currently has a generation session selected
+        # TODO: run this when session selection changes
+        genSessionIsSelected = index == 2 and self.genTextsView.currentSession() is not None
+        self.exportSessionAction.setEnabled(genSessionIsSelected)
+        self.cleanSessionAction.setEnabled(genSessionIsSelected)
+
+
     def openTrainingModal(self):
         self.trainingModal = TrainingModal(self, self.repositoryName())
         self.trainingModal.exec()
@@ -111,6 +129,13 @@ class RepositoryWindow(QMainWindow):
         self.addDatasetModal = ImportDatasetModal(self, self.repositoryName())
         self.addDatasetModal.exec()
         self.refreshContent()
+
+    def openExportSessionModal(self):
+        pass
+
+    def openCleanSessionModal(self):
+        sessionToClean = self.genTextsView.currentSession()
+        print(f'User wants to clean the session {sessionToClean}')
 
     def refreshContent(self):
         try:

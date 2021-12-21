@@ -1,11 +1,11 @@
 from datetime import datetime
 from difflib import SequenceMatcher
 from typing import Iterable, List, Union
-from PyQt6.QtCore import QMimeData, QPoint, QSize, Qt
-from PyQt6.QtGui import QColor, QColorConstants, QIcon
+from PyQt6.QtCore import QMimeData, QPoint, QSize, Qt, pyqtSignal
+from PyQt6.QtGui import QColor, QColorConstants, QFont, QIcon, QKeySequence
 from PyQt6.QtWidgets import QFrame, QGridLayout, QHeaderView, QLabel, QListWidget, QListWidgetItem, QMenu, QSizePolicy, QSplitter, QTabWidget, QTextEdit, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget
 from Core.GenniCore import GenniCore
-from Core.ModelRepo import getDatasetMetadata
+from Core.ModelRepo import getDatasetMetadata, getGeneratedTextInRepository, markGeneratedSampleInRepository
 from Views.Colors import COLOR_BLUE, COLOR_PURPLE, COLOR_RED, COLOR_YELLOW
 from Views.LabeledValueView import LabeledValueView
 
@@ -13,6 +13,7 @@ class RepositoryGeneratedDetailView(QWidget):
     def __init__(self, repoName, parent=None):
         super().__init__(parent)
         self.__repoName = repoName
+        self.__currentData = {}
 
         # Title label
         self.titleLabel = QLabel('', parent=self)
@@ -24,8 +25,9 @@ class RepositoryGeneratedDetailView(QWidget):
         self.titleLabel.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
         # Left-hand list of samples
-        self.sampleList = GeneratedTextsList(self)
+        self.sampleList = GeneratedTextsList(self.__repoName, parent=self)
         self.sampleList.currentItemChanged.connect(self.onCurrentItemChanged)
+        self.sampleList.genTextDataModified.connect(self.refresh)
         
         # Right-hand detailed sample
         self.sampleDetail = RepositoryGeneratedDetailVertSplitterView(self.__repoName, parent=self)
@@ -48,6 +50,7 @@ class RepositoryGeneratedDetailView(QWidget):
 
     def setRepository(self, repoName: str):
         self.__repoName = repoName
+        self.sampleList.setRepository(repoName)
         self.sampleDetail.setRepository(repoName)
 
     def onCurrentItemChanged(self, current: QTreeWidgetItem, prev: QTreeWidgetItem):
@@ -63,12 +66,27 @@ class RepositoryGeneratedDetailView(QWidget):
             self.sampleDetail.setSample(currentSelectedSample)
 
 
-    def setData(self, data: dict):
-        genDate = datetime.fromisoformat(data.get('meta', {}).get('datetime', '1970-01-01T00:00:00'))
-        self.titleLabel.setText(genDate.strftime(GenniCore.instance().getDateTimeFormatString()))
-        self.setSamples(data.get('texts', []))
-        self.hpView.setData(data)
-        self.sampleDetail.setPrompt(data.get('meta', {}).get('prompt', ''))
+    def setCurrentSessionName(self, name: str):
+        """
+        Instead of being passed all of the data, this should just be passed the path to the text folder.
+
+        """
+        self.__sessionName = name
+        self.sampleList.setCurrentSessionName(name)
+        self.refresh()
+
+    def refresh(self):
+        """
+        Get the data for the current generated text collection and update the UI.
+        """
+        sessionContents = getGeneratedTextInRepository(self.__repoName, self.__sessionName)
+
+        sessionDateStr = sessionContents.get('meta', {}).get('datetime', '1970-01-01T00:00:00')
+        sessionDate = datetime.fromisoformat(sessionDateStr)
+        self.titleLabel.setText(sessionDate.strftime(GenniCore.instance().getDateTimeFormatString()))
+
+        self.setSamples(sessionContents.get('texts', []))
+        self.hpView.setData(sessionContents)
 
 
     def setSamples(self, samples: List[Union[str, dict]]):
@@ -91,7 +109,17 @@ class RepositoryGeneratedDetailView(QWidget):
                 data: dict
                 item.setText(0, data.get('text', '').replace('\n', ''))
 
-                
+                status: str = data.get('status', None)
+
+                if status == 'favorited': # for when an item is favorited
+                    item.setIcon(0, QIcon('Icons/Star.svg'))
+
+                elif status == 'hidden': # for when an item is crossed out
+                    item.setIcon(0, QIcon('Icons/Cross Out.svg'))
+                    f: QFont = item.font(0)
+                    f.setStrikeOut(True)
+                    item.setFont(0, f)
+
                 if data.get('datasetMatches', None) is not None and len(data.get('datasetMatches', [])) > 0:
                     topMatch = sorted(data.get('datasetMatches', []), key=lambda x: x.get('ratio', 0), reverse=True)[0]
                     ratio = topMatch.get('ratio', 0)
@@ -106,8 +134,12 @@ class RepositoryGeneratedDetailView(QWidget):
 
 
 class GeneratedTextsList(QTreeWidget):
-    def __init__(self, parent=None):
+    genTextDataModified = pyqtSignal()
+    def __init__(self, repoName, parent=None):
         super().__init__(parent)
+        self.__repoName = repoName
+        self.__sessionName = ''
+
         self.setColumnCount(2)
         self.setHeaderLabels(["Text", "% Match"])
 
@@ -125,8 +157,9 @@ class GeneratedTextsList(QTreeWidget):
 
         # Set up context menu
         self.contextMenu = QMenu(self)
-        self.favAction = self.contextMenu.addAction("Favorite", self.onAddFavoriteText)
-        self.hideAction = self.contextMenu.addAction("Hide", self.onHideText)
+        self.favAction = self.contextMenu.addAction(QIcon('Icons/Star.svg'), 'Mark as Favorite', self.onAddFavoriteText)
+        self.hideAction = self.contextMenu.addAction(QIcon('Icons/Cross Out.svg'), 'Mark as Hidden', self.onHideText)
+        self.clearTagAction = self.contextMenu.addAction('Remove Mark', self.onClearStatusText)
 
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.onContextMenuRequested)
@@ -135,11 +168,24 @@ class GeneratedTextsList(QTreeWidget):
         self.contextMenu.exec(self.mapToGlobal(point))
 
     def onAddFavoriteText(self):
-        index = self.currentItem().data(0, Qt.ItemDataRole.UserRole + 1)
-        print(f'Add item at index {index} as favorite text')
-
+        self.setStatusOfCurrentItem('favorited')
+        
     def onHideText(self):
+        self.setStatusOfCurrentItem('hidden')
+
+    def onClearStatusText(self):
+        self.setStatusOfCurrentItem('')
+
+    def setStatusOfCurrentItem(self, status: str):
         index = self.currentItem().data(0, Qt.ItemDataRole.UserRole + 1)
+        markGeneratedSampleInRepository(self.__repoName, self.__sessionName, index, status)
+        self.genTextDataModified.emit()
+
+    def setCurrentSessionName(self, name: str):
+        self.__sessionName = name
+
+    def setRepository(self, repoName: str):
+        self.__repoName = repoName
         
 class GeneratedTextsListItem(QTreeWidgetItem):
     def __lt__(self, other: 'GeneratedTextsListItem'):
@@ -172,7 +218,6 @@ class RepositoryGeneratedDetailVertSplitterView(QSplitter):
         self.addWidget(self.rawTextEdit)
         self.addWidget(self.originalityTreeView)
 
-        self.__sample = {}
         self.__prompt = ''
 
     def setRepository(self, repoName: str):
@@ -182,7 +227,6 @@ class RepositoryGeneratedDetailVertSplitterView(QSplitter):
         self.__prompt = prompt
 
     def setSample(self, sample: dict):
-        self.__sample = sample
         self.rawTextEdit.setText(sample.get('text', ''))
 
         self.originalityTreeView.clear()

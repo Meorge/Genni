@@ -105,6 +105,32 @@ def getGeneratedTextsInRepository(repoPath: str) -> List[dict]:
 
     validGens.sort(key=lambda i: i['meta']['datetime'], reverse=True)
     return validGens
+
+def getGeneratedTextInRepository(repoPath: str, genTextPath: str) -> dict:
+    destFolder = join(repoPath, 'generated', genTextPath)
+    
+    metaPath = join(destFolder, 'meta.json')
+    textPath = join(destFolder, 'texts.json')
+
+    if exists(metaPath) and exists(textPath):
+        with open(metaPath, encoding='utf-8') as f: meta = load(f)
+        with open(textPath, encoding='utf-8') as f: text = load(f)
+        return {'texts': text, 'meta': meta}
+        
+    return {}
+
+
+def markGeneratedSampleInRepository(repoPath: str, genTextPath: str, index: int, status: str):
+    pathToTexts = join(repoPath, 'generated', genTextPath, 'texts.json')
+    f = open(pathToTexts, encoding='utf-8')
+    texts = load(f)
+    f.close()
+
+    texts[index]['status'] = status
+
+    f = open(pathToTexts, mode='w', encoding='utf-8')
+    dump(texts, f, indent=4)
+    f.close()
     
 def getDatasetMetadata(repoPath: str, datasetName: str) -> dict:
     allDatasets = getDatasetsInRepository(repoPath)

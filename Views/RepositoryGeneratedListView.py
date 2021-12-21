@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from typing import Optional
 from PyQt6.QtCore import QPoint, Qt, pyqtSignal
 from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import QHeaderView, QMenu, QMessageBox, QSplitter, QTreeWidget, QTreeWidgetItem, QWidget
@@ -9,8 +10,11 @@ from Views.RepositoryGeneratedDetailView import RepositoryGeneratedDetailView
 
 class RepositoryGeneratedListView(QSplitter):
     repositoryLoaded = pyqtSignal(str)
+    currentSessionChanged = pyqtSignal()
 
-    __currentRepo = None
+    __currentRepo: Optional[str] = None
+    __currentSession: Optional[str] = None
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -45,6 +49,7 @@ class RepositoryGeneratedListView(QSplitter):
         self.populateList()
 
     def repository(self) -> str: return self.__currentRepo
+    def currentSession(self) -> str: return self.__currentSession
 
     def loadRepository(self, repoName: str):
         self.__currentRepo = repoName
@@ -97,4 +102,7 @@ class RepositoryGeneratedListView(QSplitter):
 
     def onCurrentItemChanged(self, current: QTreeWidgetItem, prev: QTreeWidgetItem):
         if current is None: return
-        self.descStuff.setData(current.data(0, Qt.ItemDataRole.UserRole))
+        
+        self.__currentSession = current.data(0, Qt.ItemDataRole.UserRole)['path']
+        self.descStuff.setCurrentSessionName(self.__currentSession)
+        self.currentSessionChanged.emit()
