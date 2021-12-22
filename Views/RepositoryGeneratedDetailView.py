@@ -92,10 +92,9 @@ class RepositoryGeneratedDetailView(QWidget):
     def setSamples(self, samples: List[Union[str, dict]]):
         self.__samples = samples
 
-        # row = None
-        # index = self.sampleList.currentIndex()
-        # if index is not None: row = index.row()
-        # print(f'We had index {index}, row {row} selected')
+        row = -1
+        index = self.sampleList.currentIndex()
+        if index is not None: row = index.row()
 
         self.sampleList.clear()
         for i, data in enumerate(self.__samples):
@@ -136,6 +135,9 @@ class RepositoryGeneratedDetailView(QWidget):
                     item.setIcon(1, QIcon(f'Icons/{icon}.svg'))
                     item.setText(1, f'{ratio * 100:.01f}%')
                     item.setData(1, Qt.ItemDataRole.UserRole, ratio)
+
+        if row >= 0:
+            self.sampleList.setCurrentItem(self.sampleList.topLevelItem(min(row, self.sampleList.topLevelItemCount() - 1)))
 
 class GeneratedTextsList(QTreeWidget):
     genTextDataModified = pyqtSignal()
