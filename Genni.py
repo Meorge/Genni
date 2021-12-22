@@ -7,6 +7,7 @@ import sys
 from Core.ModelRepo import getRepoMetadata
 from Core.GenniCore import GenniCore
 from Views.CleanSession.CleanSessionConfigView import CleanSessionModal
+from Views.ExportSession.ExportSessionConfigView import ExportSessionModal
 from Views.Generation.GeneratingView import GeneratingModal
 from Views.ImportDatasetView import ImportDatasetModal
 from Views.Preferences.PreferencesView import PreferencesView
@@ -134,6 +135,8 @@ class RepositoryWindow(QMainWindow):
     def openExportSessionModal(self):
         session = self.genTextsView.currentSession()
         print(f'User wants to export the session {session}')
+        self.exportModal = ExportSessionModal(self.repositoryName(), session, self)
+        self.exportModal.exec()
         # TODO: session export modal (set format of export, preview output?)
 
     def openCleanSessionModal(self):
