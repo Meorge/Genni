@@ -78,16 +78,7 @@ class RepositoryModelHistoryView(QSplitter):
             item.setIcon(0, self.makeIcon(100, 0.1, i.get('filePath') == headModel))
 
     def makeIcon(self, size: int, padding: float, head: bool = False) -> QIcon:
+        if head: return QIcon('./Icons/Robot.svg')
         pm = QPixmap(size, size)
         pm.fill(QColorConstants.Transparent)
-        effectivePadding = size * padding
-        
-        if not head: return QIcon(pm)
-
-        with QPainter(pm) as p:
-            p: QPainter
-            p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-            p.setBrush(QColor(60, 150, 240))
-            p.setPen(QPen(QColor(50, 50, 200), 5.0))
-            p.drawEllipse(pm.rect().marginsRemoved(QMargins(effectivePadding, effectivePadding, effectivePadding, effectivePadding)))
         return QIcon(pm)
