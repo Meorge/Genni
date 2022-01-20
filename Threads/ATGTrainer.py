@@ -5,8 +5,9 @@ from PyQt6.QtCore import QThread, QTimer, pyqtSignal
 from datetime import datetime, timedelta
 from os import environ
 from json import dump, load
+from Core.GenniCore import GenniCore
 
-from Core.ModelRepo import getRepoHeadModel
+from Core.ModelRepo import getRepoHeadModel, getRepoMetadata
 
 canDoNotifications = True
 try:
@@ -53,12 +54,24 @@ class ATGTrainer(QThread):
         self.trainingStarted.connect(self.onTrainingStarted_main)
         self.trainingEnded.connect(self.onTrainingEnded_main)
 
+        self.started.connect(self.addToJobs)
+
     def setConfig(self, config: dict): self.__config = config
     def config(self) -> dict: return self.__config
 
     def currentStep(self) -> int: return self.__currentStep
 
     def trainingSamples(self) -> dict: return self.__samples
+
+    def name(self) -> str:
+        return f"{self.__config['title']} ({getRepoMetadata(self.__repoName).get('title', 'Untitled Repository')})"
+
+    def addToJobs(self):
+        """
+        Add this training session to the list of jobs that GenniCore
+        is keeping.
+        """
+        GenniCore.instance().addJob(self)
 
     def triggerStop(self):
         self.__shouldStop = True
@@ -71,6 +84,7 @@ class ATGTrainer(QThread):
 
     def onTrainingEnded_main(self):
         self.timePassedTimer.stop()
+        GenniCore.instance().removeJob(self)
 
     def onTimePassed(self):
         currentTime = datetime.now()
